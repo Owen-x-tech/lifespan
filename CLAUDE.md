@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## What is Lifespan
+## What is Liv ai
 
 A PWA that scans food via camera and shows how many minutes of life each serving adds or removes. Uses GPT-4o Vision to identify food and estimate nutrition, then scores it using the Spiegelhalter (2012) BMJ microlife framework.
 
