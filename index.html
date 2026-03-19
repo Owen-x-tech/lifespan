@@ -244,6 +244,12 @@
       loadScansFromDb();
     }
 
+    // --- Gender select text color ---
+    $('ob-gender').addEventListener('change', (e) => {
+      e.target.classList.toggle('text-white/30', !e.target.value);
+      e.target.classList.toggle('text-white', !!e.target.value);
+    });
+
     // --- Onboarding ---
     $('ob-start').addEventListener('click', () => {
       const profile = {
