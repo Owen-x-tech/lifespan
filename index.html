@@ -113,21 +113,6 @@
     </div>
   </div>
 
-  <!-- ===== SETTINGS OVERLAY ===== -->
-  <div id="settings-overlay" class="fixed inset-0 z-40 bg-bg/95 backdrop-blur-sm flex flex-col items-center justify-center px-8 hidden">
-    <div class="overlay-enter w-full max-w-sm">
-      <h2 class="text-2xl font-bold mb-6 text-center">Settings</h2>
-      <label class="text-white/50 text-sm mb-2 block">OpenAI API Key</label>
-      <input id="settings-key" type="password" placeholder="sk-..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 mb-6">
-      <button id="settings-save" class="w-full bg-white text-bg font-semibold rounded-xl py-3.5 text-lg active:scale-95 transition-transform mb-3">
-        Save
-      </button>
-      <button id="settings-cancel" class="w-full bg-white/10 border border-white/10 font-semibold rounded-xl py-3.5 text-lg active:scale-95 transition-transform">
-        Cancel
-      </button>
-    </div>
-  </div>
-
   <!-- ===== CAMERA OVERLAY ===== -->
   <div id="camera-overlay" class="fixed inset-0 z-30 bg-bg flex flex-col hidden">
     <video id="viewfinder" class="flex-1 object-cover w-full" autoplay playsinline></video>
@@ -149,14 +134,8 @@
   <div class="flex-1 flex flex-col px-5 pt-14 pb-6">
 
     <!-- Header -->
-    <div class="flex items-center justify-between mb-6">
+    <div class="mb-6">
       <h1 class="text-2xl font-bold">Liv ai</h1>
-      <button id="settings-btn" class="text-white/40 hover:text-white/70 transition-colors">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-        </svg>
-      </button>
     </div>
 
     <!-- Life Bar -->
@@ -200,6 +179,17 @@
     import { score } from './microlife.js';
     import { analyzeFood } from './api.js';
 
+    // --- Device ID ---
+    function getDeviceId() {
+      let id = localStorage.getItem('liv_device_id');
+      if (!id) {
+        id = crypto.randomUUID();
+        localStorage.setItem('liv_device_id', id);
+      }
+      return id;
+    }
+    const deviceId = getDeviceId();
+
     // --- State ---
     let history = JSON.parse(localStorage.getItem('lifespan_history') || '[]');
     let totalMinutes = history.reduce((sum, h) => sum + h.minutes, 0);
@@ -208,6 +198,39 @@
 
     // --- DOM refs ---
     const $ = (id) => document.getElementById(id);
+
+    // --- DB sync ---
+    async function saveScanToDb(entry) {
+      try {
+        await fetch('/api/scans', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ device_id: deviceId, ...entry })
+        });
+      } catch (e) { /* offline fallback — localStorage already has it */ }
+    }
+
+    async function loadScansFromDb() {
+      try {
+        const res = await fetch(`/api/scans?device_id=${deviceId}`);
+        if (!res.ok) return;
+        const rows = await res.json();
+        if (rows.length > 0) {
+          history = rows.map(r => ({
+            food_name: r.food_name,
+            portion: r.portion,
+            minutes: r.minutes,
+            factors: r.factors,
+            calories: r.calories,
+            timestamp: new Date(r.created_at).getTime()
+          }));
+          localStorage.setItem('lifespan_history', JSON.stringify(history));
+          totalMinutes = history.reduce((sum, h) => sum + h.minutes, 0);
+          renderHistory();
+          updateLifeBar();
+        }
+      } catch (e) { /* offline — use localStorage */ }
+    }
 
     // --- Init ---
     function init() {
@@ -218,6 +241,7 @@
       }
       renderHistory();
       updateLifeBar();
+      loadScansFromDb();
     }
 
     // --- Onboarding ---
@@ -231,20 +255,6 @@
       };
       localStorage.setItem('lifespan_profile', JSON.stringify(profile));
       $('onboarding').classList.add('hidden');
-    });
-
-    // --- Settings ---
-    $('settings-btn').addEventListener('click', () => {
-      $('settings-key').value = localStorage.getItem('openai_api_key') || '';
-      $('settings-overlay').classList.remove('hidden');
-    });
-    $('settings-save').addEventListener('click', () => {
-      const key = $('settings-key').value.trim();
-      if (key) localStorage.setItem('openai_api_key', key);
-      $('settings-overlay').classList.add('hidden');
-    });
-    $('settings-cancel').addEventListener('click', () => {
-      $('settings-overlay').classList.add('hidden');
     });
 
     // --- Camera ---
@@ -279,14 +289,7 @@
       return canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
     }
 
-    $('scan-btn').addEventListener('click', () => {
-      if (!localStorage.getItem('openai_api_key')) {
-        $('settings-key').value = '';
-        $('settings-overlay').classList.remove('hidden');
-        return;
-      }
-      openCamera();
-    });
+    $('scan-btn').addEventListener('click', () => openCamera());
 
     $('camera-close').addEventListener('click', closeCamera);
 
@@ -327,6 +330,7 @@
         };
         history.unshift(entry);
         localStorage.setItem('lifespan_history', JSON.stringify(history));
+        saveScanToDb(entry);
 
         // Update total
         totalMinutes += result.minutes;
@@ -493,11 +497,7 @@
         $('onboarding').classList.remove('hidden');
         return;
       }
-      if (!localStorage.getItem('openai_api_key')) {
-        $('settings-overlay').classList.remove('hidden');
-      } else {
-        openCamera();
-      }
+      openCamera();
     });
 
     $('shared-dismiss').addEventListener('click', dismissShared);

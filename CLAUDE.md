@@ -18,16 +18,16 @@ No build step. No bundler. No framework. Tailwind via CDN. Open on phone via `ht
 
 ## Architecture
 
-Four files, no dependencies:
-
-- **index.html** — entire UI (HTML + inline Tailwind + all JS logic in a `<script type="module">` block). Manages overlays (onboarding, result, settings, camera, loading, shared result) by toggling `hidden` class. All state in `localStorage`.
+- **index.html** — entire UI (HTML + inline Tailwind + all JS logic in a `<script type="module">` block). Manages overlays (onboarding, result, camera, loading, shared result) by toggling `hidden` class.
 - **microlife.js** — pure scoring function. Takes a nutrition JSON object, returns `{ minutes, factors[] }`. Factors stack additively.
-- **api.js** — single GPT-4o Vision API call. Sends base64 JPEG, expects structured JSON nutrition response. API key from localStorage.
+- **api.js** — client-side helper that calls the serverless API proxy at `/api/analyze`.
+- **api/analyze.js** — Vercel serverless function that proxies GPT-4o Vision calls. OpenAI API key stored as `OPENAI_API_KEY` env var (never client-side).
+- **api/scans.js** — Vercel serverless function for scan history CRUD. Connects to Neon Postgres via `DATABASE_URL` env var.
 - **manifest.json** — PWA manifest for "Add to Home Screen".
 
 ## Data flow
 
-Scan → camera capture/file input → base64 JPEG → `api.js:analyzeFood()` → nutrition JSON → `microlife.js:score()` → `{ minutes, factors }` → result overlay + history + Life Bar update → persist to localStorage.
+Scan → camera capture/file input → base64 JPEG → `/api/analyze` (serverless) → nutrition JSON → `microlife.js:score()` → `{ minutes, factors }` → result overlay + history + Life Bar update → persist to localStorage + Neon Postgres.
 
 ## Scoring table (microlife.js)
 
@@ -45,9 +45,14 @@ Scan → camera capture/file input → base64 JPEG → `api.js:analyzeFood()` �
 
 ## localStorage keys
 
-- `openai_api_key` — user's OpenAI API key (entered via settings overlay)
+- `liv_device_id` — random UUID generated on first visit, used to associate scans in the database
 - `lifespan_profile` — JSON: name, age, gender, weight, height (collected at onboarding, reserved for future personalization)
 - `lifespan_history` — JSON array of scan entries (food_name, portion, minutes, factors, calories, timestamp)
+
+## Environment variables (Vercel)
+
+- `OPENAI_API_KEY` — server-side OpenAI API key for GPT-4o Vision
+- `DATABASE_URL` — Neon Postgres connection string
 
 ## Design system
 
