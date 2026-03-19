@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Lifespan</title>
+  <link rel="manifest" href="manifest.json">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg: '#0a0a0a',
+            gain: '#22c55e',
+            loss: '#ef4444',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .life-bar-inner { transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+    .overlay-enter { animation: slideUp 0.3s ease-out; }
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes countUp {
+      from { opacity: 0; transform: scale(0.5); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .count-anim { animation: countUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .pulse-scan { animation: pulse 2s infinite; }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.2); }
+      50% { box-shadow: 0 0 0 16px rgba(255,255,255,0); }
+    }
+    input:focus { outline: none; }
+
+    /* Hide file input */
+    #fileInput { display: none; }
+
+    /* Viewfinder */
+    #viewfinder { transform: scaleX(-1); }
+  </style>
+</head>
+<body class="bg-bg text-white min-h-screen flex flex-col overflow-hidden select-none">
+
+  <!-- ===== ONBOARDING OVERLAY ===== -->
+  <div id="onboarding" class="fixed inset-0 z-50 bg-bg flex flex-col items-center justify-center px-8 hidden">
+    <div class="overlay-enter w-full max-w-sm">
+      <h1 class="text-3xl font-extrabold mb-1 text-center">Lifespan</h1>
+      <p class="text-white/50 text-center mb-8 text-sm">Scan food. See how it affects your life.</p>
+
+      <div class="space-y-3">
+        <input id="ob-name" type="text" placeholder="Name" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30">
+        <div class="grid grid-cols-2 gap-3">
+          <input id="ob-age" type="number" placeholder="Age" class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30">
+          <select id="ob-gender" class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white/30 appearance-none">
+            <option value="" disabled selected>Gender</option>
+            <option value="male" class="text-white bg-bg">Male</option>
+            <option value="female" class="text-white bg-bg">Female</option>
+            <option value="other" class="text-white bg-bg">Other</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <input id="ob-weight" type="number" placeholder="Weight (kg)" class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30">
+          <input id="ob-height" type="number" placeholder="Height (cm)" class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30">
+        </div>
+      </div>
+
+      <button id="ob-start" class="w-full mt-6 bg-white text-bg font-semibold rounded-xl py-3.5 text-lg active:scale-95 transition-transform">
+        Start scanning
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== RESULT OVERLAY ===== -->
+  <div id="result-overlay" class="fixed inset-0 z-40 bg-bg/95 backdrop-blur-sm flex flex-col items-center justify-center px-8 hidden">
+    <div class="overlay-enter w-full max-w-sm text-center">
+      <div id="result-delta" class="text-6xl font-extrabold mb-1 count-anim"></div>
+      <div class="text-white/30 text-xs uppercase tracking-widest mb-4">per serving</div>
+      <div id="result-food" class="text-white/60 text-lg mb-6"></div>
+      <div id="result-factors" class="text-left bg-white/5 rounded-xl p-4 mb-8 space-y-1 text-sm text-white/70"></div>
+      <button id="result-share" class="w-full bg-white text-bg font-semibold rounded-xl py-3.5 text-lg active:scale-95 transition-transform mb-3">
+        Share Result
+      </button>
+      <button id="result-done" class="w-full bg-white/10 border border-white/10 font-semibold rounded-xl py-3.5 text-lg active:scale-95 transition-transform">
+        Done
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== SHARED RESULT LANDING ===== -->
+  <div id="shared-overlay" class="fixed inset-0 z-50 bg-bg flex flex-col items-center justify-center px-8 hidden">
+    <div class="overlay-enter w-full max-w-sm text-center">
+      <p class="text-white/40 text-xs uppercase tracking-widest mb-6">Someone scanned their food</p>
+      <div id="shared-delta" class="text-6xl font-extrabold mb-1 count-anim"></div>
+      <div class="text-white/30 text-xs uppercase tracking-widest mb-3">per serving</div>
+      <div id="shared-food" class="text-white/60 text-lg mb-8"></div>
+      <button id="shared-cta" class="w-full bg-white text-bg font-semibold rounded-xl py-3.5 text-lg active:scale-95 transition-transform mb-3">
+        Scan my own food
+      </button>
+      <button id="shared-dismiss" class="w-full bg-white/10 border border-white/10 font-semibold rounded-xl py-3.5 text-lg active:scale-95 transition-transform">
+        See my stats
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== SETTINGS OVERLAY ===== -->
+  <div id="settings-overlay" class="fixed inset-0 z-40 bg-bg/95 backdrop-blur-sm flex flex-col items-center justify-center px-8 hidden">
+    <div class="overlay-enter w-full max-w-sm">
+      <h2 class="text-2xl font-bold mb-6 text-center">Settings</h2>
+      <label class="text-white/50 text-sm mb-2 block">OpenAI API Key</label>
+      <input id="settings-key" type="password" placeholder="sk-..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 mb-6">
+      <button id="settings-save" class="w-full bg-white text-bg font-semibold rounded-xl py-3.5 text-lg active:scale-95 transition-transform mb-3">
+        Save
+      </button>
+      <button id="settings-cancel" class="w-full bg-white/10 border border-white/10 font-semibold rounded-xl py-3.5 text-lg active:scale-95 transition-transform">
+        Cancel
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== CAMERA OVERLAY ===== -->
+  <div id="camera-overlay" class="fixed inset-0 z-30 bg-bg flex flex-col hidden">
+    <video id="viewfinder" class="flex-1 object-cover w-full" autoplay playsinline></video>
+    <div class="absolute bottom-0 inset-x-0 pb-10 pt-6 flex justify-center bg-gradient-to-t from-bg/90 to-transparent">
+      <button id="camera-capture" class="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center active:scale-90 transition-transform">
+        <div class="w-16 h-16 rounded-full bg-white"></div>
+      </button>
+    </div>
+    <button id="camera-close" class="absolute top-12 left-5 text-white/70 text-3xl">&times;</button>
+  </div>
+
+  <!-- ===== LOADING OVERLAY ===== -->
+  <div id="loading-overlay" class="fixed inset-0 z-35 bg-bg/95 backdrop-blur-sm flex flex-col items-center justify-center hidden" style="z-index: 35;">
+    <div class="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin mb-4"></div>
+    <p class="text-white/60">Analyzing your food...</p>
+  </div>
+
+  <!-- ===== MAIN SCREEN ===== -->
+  <div class="flex-1 flex flex-col px-5 pt-14 pb-6">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold">Lifespan</h1>
+      <button id="settings-btn" class="text-white/40 hover:text-white/70 transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Life Bar -->
+    <div class="mb-8">
+      <div class="flex justify-between items-baseline mb-2">
+        <span class="text-white/40 text-xs font-medium uppercase tracking-wider">Life Impact</span>
+        <span id="life-total" class="text-lg font-bold">0 min</span>
+      </div>
+      <div class="relative h-6 bg-white/5 rounded-full overflow-hidden">
+        <!-- Center line -->
+        <div class="absolute left-1/2 top-0 bottom-0 w-px bg-white/20 z-10"></div>
+        <!-- Green bar (grows right from center) -->
+        <div id="bar-gain" class="life-bar-inner absolute top-0 bottom-0 left-1/2 bg-gain/80 rounded-r-full" style="width: 0%"></div>
+        <!-- Red bar (grows left from center) -->
+        <div id="bar-loss" class="life-bar-inner absolute top-0 bottom-0 right-1/2 bg-loss/80 rounded-l-full" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <!-- Scan Button -->
+    <div class="flex justify-center mb-8">
+      <button id="scan-btn" class="pulse-scan w-24 h-24 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center active:scale-90 transition-transform">
+        <svg class="w-10 h-10 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+      </button>
+    </div>
+    <input type="file" id="fileInput" accept="image/*" capture="environment">
+
+    <!-- History -->
+    <div class="flex-1 overflow-y-auto">
+      <h2 class="text-white/40 text-xs font-medium uppercase tracking-wider mb-3">Scan History</h2>
+      <div id="history-list" class="space-y-2">
+        <p id="history-empty" class="text-white/20 text-sm text-center py-8">No scans yet. Tap the camera to start.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== APP LOGIC ===== -->
+  <script type="module">
+    import { score } from './microlife.js';
+    import { analyzeFood } from './api.js';
+
+    // --- State ---
+    let history = JSON.parse(localStorage.getItem('lifespan_history') || '[]');
+    let totalMinutes = history.reduce((sum, h) => sum + h.minutes, 0);
+    let stream = null;
+    let currentEntry = null;
+
+    // --- DOM refs ---
+    const $ = (id) => document.getElementById(id);
+
+    // --- Init ---
+    function init() {
+      if (checkSharedLink()) return;
+      const profile = localStorage.getItem('lifespan_profile');
+      if (!profile) {
+        $('onboarding').classList.remove('hidden');
+      }
+      renderHistory();
+      updateLifeBar();
+    }
+
+    // --- Onboarding ---
+    $('ob-start').addEventListener('click', () => {
+      const profile = {
+        name: $('ob-name').value || 'User',
+        age: parseInt($('ob-age').value) || 30,
+        gender: $('ob-gender').value || 'other',
+        weight: parseFloat($('ob-weight').value) || 70,
+        height: parseFloat($('ob-height').value) || 170,
+      };
+      localStorage.setItem('lifespan_profile', JSON.stringify(profile));
+      $('onboarding').classList.add('hidden');
+    });
+
+    // --- Settings ---
+    $('settings-btn').addEventListener('click', () => {
+      $('settings-key').value = localStorage.getItem('openai_api_key') || '';
+      $('settings-overlay').classList.remove('hidden');
+    });
+    $('settings-save').addEventListener('click', () => {
+      const key = $('settings-key').value.trim();
+      if (key) localStorage.setItem('openai_api_key', key);
+      $('settings-overlay').classList.add('hidden');
+    });
+    $('settings-cancel').addEventListener('click', () => {
+      $('settings-overlay').classList.add('hidden');
+    });
+
+    // --- Camera ---
+    async function openCamera() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 960 } }
+        });
+        $('viewfinder').srcObject = stream;
+        $('camera-overlay').classList.remove('hidden');
+      } catch (e) {
+        // Fallback to file input
+        $('fileInput').click();
+      }
+    }
+
+    function closeCamera() {
+      if (stream) {
+        stream.getTracks().forEach(t => t.stop());
+        stream = null;
+      }
+      $('camera-overlay').classList.add('hidden');
+    }
+
+    function captureFrame() {
+      const video = $('viewfinder');
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0);
+      return canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+    }
+
+    $('scan-btn').addEventListener('click', () => {
+      if (!localStorage.getItem('openai_api_key')) {
+        $('settings-key').value = '';
+        $('settings-overlay').classList.remove('hidden');
+        return;
+      }
+      openCamera();
+    });
+
+    $('camera-close').addEventListener('click', closeCamera);
+
+    $('camera-capture').addEventListener('click', async () => {
+      const base64 = captureFrame();
+      closeCamera();
+      await processImage(base64);
+    });
+
+    // File input fallback
+    $('fileInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64 = reader.result.split(',')[1];
+        await processImage(base64);
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    });
+
+    // --- Process ---
+    async function processImage(base64) {
+      $('loading-overlay').classList.remove('hidden');
+      try {
+        const nutrition = await analyzeFood(base64);
+        const result = score(nutrition);
+
+        // Save to history
+        const entry = {
+          food_name: nutrition.food_name,
+          portion: nutrition.portion,
+          minutes: result.minutes,
+          factors: result.factors,
+          calories: nutrition.calories,
+          timestamp: Date.now()
+        };
+        history.unshift(entry);
+        localStorage.setItem('lifespan_history', JSON.stringify(history));
+
+        // Update total
+        totalMinutes += result.minutes;
+
+        // Update UI
+        $('loading-overlay').classList.add('hidden');
+        updateLifeBar();
+        renderHistory();
+        showResult(entry);
+      } catch (err) {
+        $('loading-overlay').classList.add('hidden');
+        showError(err.message);
+      }
+    }
+
+    // --- Result Overlay ---
+    function showResult(entry) {
+      currentEntry = entry;
+      const sign = entry.minutes >= 0 ? '+' : '';
+      const absMin = Math.abs(entry.minutes);
+      const mins = Math.floor(absMin);
+      const secs = Math.round((absMin - mins) * 60);
+
+      let display = `${sign}${mins} min`;
+      if (secs > 0) display += ` ${secs} sec`;
+
+      $('result-delta').textContent = display;
+      $('result-delta').className = `text-6xl font-extrabold mb-3 count-anim ${entry.minutes >= 0 ? 'text-gain' : 'text-loss'}`;
+
+      $('result-food').textContent = `${entry.food_name} (${entry.portion})`;
+
+      $('result-factors').innerHTML = entry.factors
+        .map(f => `<div class="flex items-center gap-2"><span class="text-white/30">•</span> ${f}</div>`)
+        .join('');
+
+      $('result-overlay').classList.remove('hidden');
+    }
+
+    $('result-done').addEventListener('click', () => {
+      $('result-overlay').classList.add('hidden');
+    });
+
+    // --- Life Bar ---
+    function updateLifeBar() {
+      const sign = totalMinutes >= 0 ? '+' : '';
+      $('life-total').textContent = `${sign}${totalMinutes} min`;
+      $('life-total').className = `text-lg font-bold ${totalMinutes >= 0 ? 'text-gain' : 'text-loss'}`;
+
+      // Bar scales: 50% = ~120 min (2 hours) for full bar
+      const maxMin = 120;
+      const gainPct = totalMinutes > 0 ? Math.min((totalMinutes / maxMin) * 50, 50) : 0;
+      const lossPct = totalMinutes < 0 ? Math.min((Math.abs(totalMinutes) / maxMin) * 50, 50) : 0;
+
+      $('bar-gain').style.width = gainPct + '%';
+      $('bar-loss').style.width = lossPct + '%';
+    }
+
+    // --- History ---
+    function renderHistory() {
+      if (history.length === 0) {
+        $('history-empty').classList.remove('hidden');
+        return;
+      }
+      $('history-empty').classList.add('hidden');
+
+      const items = history.map(h => {
+        const sign = h.minutes >= 0 ? '+' : '';
+        const color = h.minutes >= 0 ? 'text-gain' : 'text-loss';
+        const time = new Date(h.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return `
+          <div class="flex items-center justify-between bg-white/5 rounded-xl px-4 py-3">
+            <div>
+              <div class="font-medium text-sm">${h.food_name}</div>
+              <div class="text-white/30 text-xs">${h.portion} · ${time}</div>
+            </div>
+            <div class="${color} font-bold text-lg">${sign}${h.minutes} min</div>
+          </div>`;
+      }).join('');
+
+      // Keep the empty message element, just hide it
+      $('history-list').innerHTML = `<p id="history-empty" class="text-white/20 text-sm text-center py-8 hidden">No scans yet.</p>` + items;
+    }
+
+    // --- Error Toast ---
+    function showError(msg) {
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-16 inset-x-4 bg-loss/90 text-white rounded-xl px-4 py-3 text-sm z-50 text-center';
+      toast.textContent = msg;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    }
+
+    // --- Share ---
+    function buildShareUrl(entry) {
+      const params = new URLSearchParams({
+        food: entry.food_name,
+        min: entry.minutes,
+        portion: entry.portion || ''
+      });
+      return `${location.origin}${location.pathname}?${params}`;
+    }
+
+    async function shareResult(entry) {
+      const url = buildShareUrl(entry);
+      const abs = Math.abs(entry.minutes);
+      const direction = entry.minutes >= 0 ? 'adds' : 'removes';
+      const preposition = entry.minutes >= 0 ? 'to' : 'from';
+      const text = `Turns out ${entry.food_name} ${direction} ${abs} minutes ${preposition} your life! Try scanning your food:`;
+
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: 'Lifespan', text, url });
+          return;
+        } catch (e) {
+          if (e.name === 'AbortError') return;
+        }
+      }
+
+      try {
+        await navigator.clipboard.writeText(`${text} ${url}`);
+        const toast = document.createElement('div');
+        toast.className = 'fixed top-16 inset-x-4 bg-gain/90 text-white rounded-xl px-4 py-3 text-sm z-50 text-center';
+        toast.textContent = 'Link copied to clipboard!';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+      } catch (e) {
+        showError('Could not copy link');
+      }
+    }
+
+    $('result-share').addEventListener('click', () => {
+      if (currentEntry) shareResult(currentEntry);
+    });
+
+    // --- Shared Link Detection ---
+    function checkSharedLink() {
+      const params = new URLSearchParams(location.search);
+      const food = params.get('food');
+      const min = params.get('min');
+      if (!food || min === null) return false;
+
+      const minutes = parseInt(min);
+      const portion = params.get('portion') || '';
+      const sign = minutes >= 0 ? '+' : '';
+
+      $('shared-delta').textContent = `${sign}${Math.abs(minutes)} min`;
+      $('shared-delta').className = `text-6xl font-extrabold mb-1 count-anim ${minutes >= 0 ? 'text-gain' : 'text-loss'}`;
+      $('shared-food').textContent = portion ? `${food} (${portion})` : food;
+      $('shared-overlay').classList.remove('hidden');
+      return true;
+    }
+
+    function dismissShared() {
+      $('shared-overlay').classList.add('hidden');
+      window.history.replaceState({}, '', location.pathname);
+      renderHistory();
+      updateLifeBar();
+    }
+
+    $('shared-cta').addEventListener('click', () => {
+      dismissShared();
+      const profile = localStorage.getItem('lifespan_profile');
+      if (!profile) {
+        $('onboarding').classList.remove('hidden');
+        return;
+      }
+      if (!localStorage.getItem('openai_api_key')) {
+        $('settings-overlay').classList.remove('hidden');
+      } else {
+        openCamera();
+      }
+    });
+
+    $('shared-dismiss').addEventListener('click', dismissShared);
+
+    // --- Boot ---
+    init();
+  </script>
+</body>
+</html>
