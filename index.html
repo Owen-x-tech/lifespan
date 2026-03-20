@@ -386,6 +386,7 @@
       <div class="text-white/30 text-xs uppercase tracking-widest mb-4">per serving</div>
       <div id="result-food" class="text-white/60 text-lg mb-6"></div>
       <div id="result-factors" class="text-left bg-white/5 rounded-xl p-4 mb-8 space-y-1 text-sm text-white/70"></div>
+      <div id="result-personalized" class="text-white/30 text-xs -mt-6 mb-6 hidden">✦ Personalized for your profile</div>
       <button id="result-ate" class="w-full bg-gain text-bg font-semibold rounded-xl py-3.5 text-lg active:scale-95 transition-transform mb-3 flex items-center justify-center gap-2">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
         I ate this
@@ -807,12 +808,14 @@
       $('loading-overlay').classList.remove('hidden');
       try {
         const nutrition = await lookupBarcode(code);
-        const result = score(nutrition);
+        const barcodeProfile = JSON.parse(localStorage.getItem('lifespan_profile') || '{}');
+        const result = score(nutrition, barcodeProfile);
         const entry = {
           food_name: nutrition.food_name,
           portion: nutrition.portion,
           minutes: result.minutes,
           factors: result.factors,
+          personalized: result.personalized,
           calories: nutrition.calories,
           nutrition,
           consumed: false,
@@ -841,8 +844,8 @@
       $('loading-overlay').classList.remove('hidden');
       try {
         const profile = JSON.parse(localStorage.getItem('lifespan_profile') || '{}');
-        const nutrition = await analyzeFood(base64, { smokes: profile.smokes });
-        const result = score(nutrition);
+        const nutrition = await analyzeFood(base64);
+        const result = score(nutrition, profile);
 
         // Save to history
         const entry = {
@@ -850,6 +853,7 @@
           portion: nutrition.portion,
           minutes: result.minutes,
           factors: result.factors,
+          personalized: result.personalized,
           calories: nutrition.calories,
           nutrition,
           consumed: false,
@@ -892,6 +896,11 @@
       $('result-factors').innerHTML = entry.factors
         .map(f => `<div class="flex items-center gap-2"><span class="text-white/30">•</span> ${f}</div>`)
         .join('');
+
+      // Show personalized badge if profile data was used
+      const persEl = $('result-personalized');
+      if (entry.personalized) persEl.classList.remove('hidden');
+      else persEl.classList.add('hidden');
 
       // Update "I ate this" button state
       updateAteButton(entry);

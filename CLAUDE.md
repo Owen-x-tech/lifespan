@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What is Liv ai
 
-A PWA that scans food via camera and shows how many minutes of life each serving adds or removes. Uses GPT-4o Vision to identify food and estimate nutrition, then scores it using the Spiegelhalter (2012) BMJ microlife framework.
+A PWA that scans food via camera and shows how many minutes of life each serving adds or removes. Uses GPT-4o Vision to identify food and estimate nutrition, then scores it using Spiegelhalter (2012) microlives and Stylianou et al. (2021) HENI framework.
 
-The numbers represent **per-serving impact on total life expectancy** — one banana ≈ +33 min, one cigarette ≈ -11 min (same epidemiological framework). These accumulate: daily consumption × days = total lifespan impact.
+The numbers represent **per-serving impact on total life expectancy** — one banana ≈ +14 min, one cigarette ≈ -11 min (same epidemiological framework). These accumulate: daily consumption × days = total lifespan impact.
 
 ## Serving
 
@@ -21,8 +21,8 @@ No build step. No bundler. No framework. Tailwind via CDN. Open on phone via `ht
 - **index.html** — entire UI (HTML + inline Tailwind + all JS logic in a `<script type="module">` block). Manages overlays (onboarding wizard, result, camera, loading, barcode scanner, shared result) by toggling `hidden` class. All layouts constrained to `max-w-[430px]` for phone-width appearance on all platforms.
 - **microlife.js** — pure scoring function. Takes a nutrition JSON object, returns `{ minutes, factors[] }`. Factors stack additively.
 - **barcode.js** — client-side Open Food Facts lookup. Takes a barcode string, returns nutrition JSON in microlife format. No API key needed.
-- **api.js** — client-side helper that calls the serverless API proxy at `/api/analyze`. Accepts optional `{ smokes }` param forwarded to the server.
-- **api/analyze.js** — Vercel serverless function that proxies GPT-4o Vision calls. Appends smoking context to system prompt when `smokes: true`. OpenAI API key stored as `OPENAI_API_KEY` env var (never client-side).
+- **api.js** — client-side helper that calls the serverless API proxy at `/api/analyze`.
+- **api/analyze.js** — Vercel serverless function that proxies GPT-4o Vision calls. OpenAI API key stored as `OPENAI_API_KEY` env var (never client-side).
 - **api/scans.js** — Vercel serverless function for scan history CRUD. Connects to Neon Postgres via `DATABASE_URL` env var.
 - **manifest.json** — PWA manifest for "Add to Home Screen".
 
@@ -36,18 +36,32 @@ Both flows produce the same nutrition JSON shape for `score()`.
 
 ## Scoring table (microlife.js)
 
-| Factor | Minutes |
-|---|---|
-| Per fruit/veg serving (80g+) | +30 |
-| Oily fish (omega-3) | +15 |
-| Processed meat serving | -30 |
-| Red meat serving (non-processed) | -15 |
-| Per 5g saturated fat (above 2g) | -9 |
-| Per 1g trans fat | -15 |
-| Per 500mg sodium (above 500mg) | -6 |
-| Per 10g added sugar (above 5g) | -4.5 |
-| Per 5g fibre | +6 |
-| Whole food bonus | +3 |
+Based on Spiegelhalter (2012) microlives and Stylianou et al. (2021) HENI framework.
+
+| Factor | Minutes | Source |
+|---|---|---|
+| Per fruit/veg serving (cap 5/scan) | +15 | HENI midpoint for fruits |
+| Oily fish (omega-3) | +15 | HENI salmon |
+| Processed meat serving | -30 | HENI hot dog |
+| Red meat serving (non-processed) | -15 | GBD data |
+| Per 5g saturated fat (above 2g) | -7 | GBD mortality scaling |
+| Per 1g trans fat | -12 | WHO/GBD CHD risk scaling |
+| Per 500mg sodium (above 500mg) | -6 | GBD sodium risk factor |
+| Per 10g added sugar (above 5g) | -4.5 | Conservative estimate |
+| Per 5g fibre | +6 | GBD fiber protective factor |
+
+### Personalized modifiers
+
+`score(nutrition, profile)` accepts an optional profile object (from `lifespan_profile` localStorage). When profile data is present, evidence-based modifiers adjust the base score:
+
+| Modifier | Affected factor | Multiplier | Source |
+|---|---|---|---|
+| Age (all factors) | Final score | 1.0 (20s) → 0.85 (40s) → 0.70 (60s) → 0.50 (70s) → 0.30 (80+) | Fadnes 2022 |
+| Female | Sodium penalty | x1.3 | DASH-Sodium sex analysis |
+| Male | Red meat penalty | x1.15 | Heme iron meta-analysis |
+| BMI > 27 | Sodium penalty | x1.3 | PMC10406397 |
+
+Modifiers compound (e.g., female + high BMI = 1.3 × 1.3 = 1.69x sodium penalty). Returns `personalized: true` when any modifier is active.
 
 ## localStorage keys
 
