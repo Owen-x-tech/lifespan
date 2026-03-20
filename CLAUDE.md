@@ -18,11 +18,11 @@ No build step. No bundler. No framework. Tailwind via CDN. Open on phone via `ht
 
 ## Architecture
 
-- **index.html** — entire UI (HTML + inline Tailwind + all JS logic in a `<script type="module">` block). Manages overlays (onboarding, result, camera, loading, barcode scanner, shared result) by toggling `hidden` class.
+- **index.html** — entire UI (HTML + inline Tailwind + all JS logic in a `<script type="module">` block). Manages overlays (onboarding wizard, result, camera, loading, barcode scanner, shared result) by toggling `hidden` class. All layouts constrained to `max-w-[430px]` for phone-width appearance on all platforms.
 - **microlife.js** — pure scoring function. Takes a nutrition JSON object, returns `{ minutes, factors[] }`. Factors stack additively.
 - **barcode.js** — client-side Open Food Facts lookup. Takes a barcode string, returns nutrition JSON in microlife format. No API key needed.
-- **api.js** — client-side helper that calls the serverless API proxy at `/api/analyze`.
-- **api/analyze.js** — Vercel serverless function that proxies GPT-4o Vision calls. OpenAI API key stored as `OPENAI_API_KEY` env var (never client-side).
+- **api.js** — client-side helper that calls the serverless API proxy at `/api/analyze`. Accepts optional `{ smokes }` param forwarded to the server.
+- **api/analyze.js** — Vercel serverless function that proxies GPT-4o Vision calls. Appends smoking context to system prompt when `smokes: true`. OpenAI API key stored as `OPENAI_API_KEY` env var (never client-side).
 - **api/scans.js** — Vercel serverless function for scan history CRUD. Connects to Neon Postgres via `DATABASE_URL` env var.
 - **manifest.json** — PWA manifest for "Add to Home Screen".
 
@@ -51,7 +51,7 @@ Both flows produce the same nutrition JSON shape for `score()`.
 ## localStorage keys
 
 - `liv_device_id` — random UUID generated on first visit, used to associate scans in the database
-- `lifespan_profile` — JSON: name, age, gender, weight, height (collected at onboarding, reserved for future personalization)
+- `lifespan_profile` — JSON: name, age, gender, weight, height, smokes (boolean), daily_goal (30/60/120) — collected during 7-step onboarding wizard
 - `lifespan_history` — JSON array of scan entries (food_name, portion, minutes, factors, calories, timestamp)
 
 ## Environment variables (Vercel)
@@ -65,6 +65,32 @@ Both flows produce the same nutrition JSON shape for `score()`.
 - Green `#22c55e` (gain/positive), Red `#ef4444` (loss/negative)
 - Inter font, Tailwind utility classes
 - UI pattern: single screen + overlay system (no routing)
+- Phone-width constraint: `max-w-[430px] mx-auto` on all screens — app looks like a phone on desktop
+
+## Onboarding wizard
+
+7-step wizard in `#onboarding` overlay, controlled by `showStep(n)`:
+
+1. **Welcome** — hero image, title, "Get Started"
+2. **How It Works** — 3 feature cards, Skip/Next
+3. **Scan Demo** — viewfinder mockup, food card example, Skip/Next
+4. **Impact Explained** — life bar demo, example food cards, Skip/Next
+5. **About You** — name, gender, weight, height, smoking toggle, Continue
+6. **Set Your Goal** — 3 goal cards (Casual +30, Committed +60, Ambitious +120), Continue
+7. **Ready** — checkmark, stats summary, "Start Scanning"
+
+Skip buttons jump to step 5 (form). Step 7 saves profile to localStorage and closes overlay. Navigation dots rendered dynamically. Wireframes live in `liv.pen` (Pencil format).
+
+## Daily goal tracking
+
+Main screen shows a daily goal progress bar below the Life Bar. Calculates today's minutes by filtering history entries with today's date. Goal value comes from `lifespan_profile.daily_goal` (default 60).
+
+## Images
+
+Onboarding images stored in `images/` directory (tracked in git for Vercel deployment):
+- `generated-1773972155180.png` — welcome hero (burger spread)
+- `generated-1773972195896.png` — cheeseburger (scan demo + food card)
+- `generated-1773968728243.png` — grilled salmon bowl (impact example)
 
 ## Share feature
 
