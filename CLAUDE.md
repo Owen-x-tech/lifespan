@@ -18,16 +18,21 @@ No build step. No bundler. No framework. Tailwind via CDN. Open on phone via `ht
 
 ## Architecture
 
-- **index.html** — entire UI (HTML + inline Tailwind + all JS logic in a `<script type="module">` block). Manages overlays (onboarding, result, camera, loading, shared result) by toggling `hidden` class.
+- **index.html** — entire UI (HTML + inline Tailwind + all JS logic in a `<script type="module">` block). Manages overlays (onboarding, result, camera, loading, barcode scanner, shared result) by toggling `hidden` class.
 - **microlife.js** — pure scoring function. Takes a nutrition JSON object, returns `{ minutes, factors[] }`. Factors stack additively.
+- **barcode.js** — client-side Open Food Facts lookup. Takes a barcode string, returns nutrition JSON in microlife format. No API key needed.
 - **api.js** — client-side helper that calls the serverless API proxy at `/api/analyze`.
 - **api/analyze.js** — Vercel serverless function that proxies GPT-4o Vision calls. OpenAI API key stored as `OPENAI_API_KEY` env var (never client-side).
 - **api/scans.js** — Vercel serverless function for scan history CRUD. Connects to Neon Postgres via `DATABASE_URL` env var.
 - **manifest.json** — PWA manifest for "Add to Home Screen".
 
-## Data flow
+## Data flows
 
-Scan → camera capture/file input → base64 JPEG → `/api/analyze` (serverless) → nutrition JSON → `microlife.js:score()` → `{ minutes, factors }` → result overlay + history + Life Bar update → persist to localStorage + Neon Postgres.
+**Food scan:** camera capture/file input → base64 JPEG → `/api/analyze` (serverless) → nutrition JSON → `microlife.js:score()` → result overlay + history + Life Bar → persist to localStorage + Neon Postgres.
+
+**Barcode scan:** html5-qrcode camera → barcode string → `barcode.js:lookupBarcode()` (Open Food Facts API, client-side) → nutrition JSON → `microlife.js:score()` → same result pipeline.
+
+Both flows produce the same nutrition JSON shape for `score()`.
 
 ## Scoring table (microlife.js)
 
