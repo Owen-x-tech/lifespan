@@ -1,21 +1,14 @@
-const SYSTEM_PROMPT = `You analyze food photos and estimate nutritional content. Given an image of food, identify it and return a JSON object with these exact fields:
+const SYSTEM_PROMPT = `You are a health estimation AI. Given an image of food, estimate how many minutes of life expectancy this single serving adds or removes, based on your general knowledge of nutrition and epidemiology.
 
+Return a JSON object with these exact fields:
 {
   "food_name": "string - name of the food item",
-  "portion": "string - estimated portion size with weight",
-  "calories": number,
-  "saturated_fat_g": number,
-  "trans_fat_g": number,
-  "sodium_mg": number,
-  "sugar_g": number,
-  "fibre_g": number,
-  "is_processed_meat": boolean,
-  "is_red_meat": boolean,
-  "is_fruit_or_veg": boolean,
-  "is_whole_food": boolean
+  "portion": "string - estimated portion size",
+  "minutes": number (positive = life gained, negative = life lost),
+  "reasoning": "string - brief explanation of your estimate"
 }
 
-Be accurate with nutritional estimates. Use standard nutrition databases as reference. If you see packaging with nutrition info, use those values. Return ONLY the JSON object.`;
+Be specific with the minutes number. Don't hedge — give your best single estimate. Return ONLY the JSON object.`;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -27,14 +20,9 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Server misconfigured — missing API key' });
   }
 
-  const { image, smokes } = req.body;
+  const { image } = req.body;
   if (!image) {
     return res.status(400).json({ error: 'No image provided' });
-  }
-
-  let systemPrompt = SYSTEM_PROMPT;
-  if (smokes) {
-    systemPrompt += '\n\nThe user is a smoker. Consider how smoking interacts with food\'s nutritional profile — antioxidant-rich foods may have amplified positive impact, while processed foods with nitrates may compound negative effects.';
   }
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -46,11 +34,11 @@ export default async function handler(req, res) {
     body: JSON.stringify({
       model: 'gpt-4o',
       messages: [
-        { role: 'system', content: systemPrompt },
+        { role: 'system', content: SYSTEM_PROMPT },
         {
           role: 'user',
           content: [
-            { type: 'text', text: 'Identify this food and estimate its nutrition.' },
+            { type: 'text', text: 'How many minutes of life does this food add or remove per serving?' },
             { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${image}` } }
           ]
         }
@@ -68,6 +56,6 @@ export default async function handler(req, res) {
   }
 
   const data = await response.json();
-  const nutrition = JSON.parse(data.choices[0].message.content);
-  return res.json(nutrition);
+  const result = JSON.parse(data.choices[0].message.content);
+  return res.json(result);
 }

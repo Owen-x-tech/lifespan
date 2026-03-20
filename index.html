@@ -54,32 +54,325 @@
 <body class="bg-bg text-white min-h-screen flex flex-col overflow-hidden select-none">
 
   <!-- ===== ONBOARDING OVERLAY ===== -->
-  <div id="onboarding" class="fixed inset-0 z-50 bg-bg flex flex-col items-center justify-center px-8 hidden">
-    <div class="overlay-enter w-full max-w-sm">
-      <h1 class="text-3xl font-extrabold mb-1 text-center">Liv ai</h1>
-      <p class="text-white/50 text-center mb-8 text-sm">Scan food. See how it affects your life.</p>
+  <div id="onboarding" class="fixed inset-0 z-50 bg-bg flex flex-col hidden overflow-y-auto">
 
-      <div class="space-y-3">
-        <input id="ob-name" type="text" placeholder="Name" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30">
-        <div class="grid grid-cols-2 gap-3">
-          <input id="ob-age" type="number" placeholder="Age" class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30">
-          <select id="ob-gender" class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white/30 appearance-none">
-            <option value="" disabled selected>Gender</option>
-            <option value="male" class="text-white bg-bg">Male</option>
-            <option value="female" class="text-white bg-bg">Female</option>
-            <option value="other" class="text-white bg-bg">Other</option>
-          </select>
+    <!-- Step 1: Welcome -->
+    <div id="ob-step-1" class="flex-1 flex flex-col min-h-screen">
+      <div class="w-full h-[45vh] overflow-hidden">
+        <img src="./images/generated-1773972155180.png" class="w-full h-full object-cover" alt="Food hero">
+      </div>
+      <div class="flex-1 flex flex-col items-center justify-center px-8 pb-10">
+        <h1 class="text-3xl font-extrabold mb-3 text-center">Liv ai</h1>
+        <h2 class="text-xl font-semibold mb-3 text-center text-white/90">Know what your food really costs you</h2>
+        <p class="text-white/40 text-center text-sm mb-8 max-w-xs">Scan any food and instantly see how many minutes it adds or removes from your life.</p>
+        <button onclick="showStep(2)" class="w-full max-w-xs bg-white text-bg font-semibold rounded-xl py-3.5 text-lg active:scale-95 transition-transform flex items-center justify-center gap-2">
+          Get Started
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-7-7l7 7-7 7"/></svg>
+        </button>
+        <div class="flex gap-2 mt-6" id="dots-1"></div>
+      </div>
+    </div>
+
+    <!-- Step 2: How It Works -->
+    <div id="ob-step-2" class="flex-1 flex flex-col min-h-screen px-8 pt-16 pb-10 hidden">
+      <h1 class="text-2xl font-extrabold mb-2">How it works</h1>
+      <p class="text-white/40 text-sm mb-8">Three simple steps to understand how your food choices impact your life</p>
+
+      <div class="space-y-4 flex-1">
+        <!-- Card: Scan -->
+        <div class="bg-[#111] border border-[#1A1A1A] rounded-2xl p-4 flex items-start gap-4">
+          <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          </div>
+          <div>
+            <div class="font-semibold text-sm mb-1">Scan Your Food</div>
+            <div class="text-white/40 text-xs leading-relaxed">Point your camera at any meal to instantly identify what you're eating</div>
+          </div>
         </div>
-        <div class="grid grid-cols-2 gap-3">
-          <input id="ob-weight" type="number" placeholder="Weight (kg)" class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30">
-          <input id="ob-height" type="number" placeholder="Height (cm)" class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30">
+        <!-- Card: Analysis -->
+        <div class="bg-[#111] border border-[#1A1A1A] rounded-2xl p-4 flex items-start gap-4">
+          <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </div>
+          <div>
+            <div class="font-semibold text-sm mb-1">Get Instant Analysis</div>
+            <div class="text-white/40 text-xs leading-relaxed">AI breaks down ingredients and calculates the health impact in seconds</div>
+          </div>
+        </div>
+        <!-- Card: Impact -->
+        <div class="bg-[#111] border border-[#1A1A1A] rounded-2xl p-4 flex items-start gap-4">
+          <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+          </div>
+          <div>
+            <div class="font-semibold text-sm mb-1">See Your Life Impact</div>
+            <div class="text-white/40 text-xs leading-relaxed">Learn how many minutes each food adds or removes from your life</div>
+          </div>
         </div>
       </div>
 
-      <button id="ob-start" class="w-full mt-6 bg-white text-bg font-semibold rounded-xl py-3.5 text-lg active:scale-95 transition-transform">
-        Start scanning
+      <div class="flex gap-2 justify-center mb-6" id="dots-2"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <button onclick="showStep(5)" class="bg-white/10 border border-white/10 font-semibold rounded-xl py-3.5 text-base active:scale-95 transition-transform">Skip</button>
+        <button onclick="showStep(3)" class="bg-white text-bg font-semibold rounded-xl py-3.5 text-base active:scale-95 transition-transform flex items-center justify-center gap-2">
+          Next
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-7-7l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 3: Scan Demo -->
+    <div id="ob-step-3" class="flex-1 flex flex-col min-h-screen px-8 pt-16 pb-10 hidden">
+      <h1 class="text-2xl font-extrabold mb-2">Point. Scan. Know.</h1>
+      <p class="text-white/40 text-sm mb-8">Instant AI recognition tells you exactly what you're eating — and what it costs your body.</p>
+
+      <div class="flex-1 flex flex-col items-center">
+        <!-- Viewfinder mockup -->
+        <div class="relative w-56 h-56 mb-4">
+          <div class="absolute inset-0 border-2 border-white/20 rounded-2xl"></div>
+          <div class="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-white rounded-tl-lg"></div>
+          <div class="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-white rounded-tr-lg"></div>
+          <div class="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-white rounded-bl-lg"></div>
+          <div class="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-white rounded-br-lg"></div>
+          <div class="absolute inset-4 overflow-hidden rounded-xl">
+            <img src="./images/generated-1773972195896.png" class="w-full h-full object-cover" alt="Burger scan demo">
+          </div>
+          <div class="absolute top-3 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs px-3 py-1 rounded-full">Cheeseburger</div>
+        </div>
+
+        <!-- Camera icon -->
+        <div class="w-14 h-14 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center mb-6">
+          <svg class="w-7 h-7 text-white/80" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </div>
+
+        <!-- Food result card -->
+        <div class="w-full bg-[#111] border border-[#1A1A1A] rounded-2xl p-4 flex items-center gap-4 mb-3">
+          <div class="w-12 h-12 rounded-xl overflow-hidden shrink-0">
+            <img src="./images/generated-1773972195896.png" class="w-full h-full object-cover" alt="Cheeseburger">
+          </div>
+          <div class="flex-1">
+            <div class="font-semibold text-sm">Cheeseburger</div>
+            <div class="text-white/40 text-xs">512 cal · 34g fat · 28g protein</div>
+          </div>
+          <div class="text-right">
+            <div class="text-loss font-bold text-xl">-36</div>
+            <div class="text-white/30 text-xs">min</div>
+          </div>
+        </div>
+
+        <div class="bg-loss/20 text-loss text-xs font-medium px-4 py-1.5 rounded-full">-36 min from your life</div>
+      </div>
+
+      <div class="flex gap-2 justify-center mb-6" id="dots-3"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <button onclick="showStep(5)" class="bg-white/10 border border-white/10 font-semibold rounded-xl py-3.5 text-base active:scale-95 transition-transform">Skip</button>
+        <button onclick="showStep(4)" class="bg-white text-bg font-semibold rounded-xl py-3.5 text-base active:scale-95 transition-transform flex items-center justify-center gap-2">
+          Next
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-7-7l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 4: Impact Explained -->
+    <div id="ob-step-4" class="flex-1 flex flex-col min-h-screen px-8 pt-16 pb-10 hidden">
+      <h1 class="text-2xl font-extrabold mb-2">Your Life Impact Score</h1>
+      <p class="text-white/40 text-sm mb-6">Every food choice adds or removes minutes from your life, based on peer-reviewed nutritional research.</p>
+
+      <!-- Life bar demo -->
+      <div class="mb-4">
+        <div class="flex justify-between items-baseline mb-2">
+          <span class="text-white/40 text-xs font-medium uppercase tracking-wider">Life Impact Score</span>
+          <span class="text-gain text-sm font-bold">+12 min</span>
+        </div>
+        <div class="relative h-5 bg-white/5 rounded-full overflow-hidden">
+          <div class="absolute left-1/2 top-0 bottom-0 w-px bg-white/20 z-10"></div>
+          <div class="absolute top-0 bottom-0 left-1/2 bg-gain/80 rounded-r-full" style="width: 10%"></div>
+        </div>
+      </div>
+
+      <!-- Example badges -->
+      <div class="flex gap-3 mb-6">
+        <div class="bg-gain/10 text-gain text-xs font-medium px-4 py-2 rounded-full">+12 min healthy</div>
+        <div class="bg-loss/10 text-loss text-xs font-medium px-4 py-2 rounded-full">-36 min unhealthy</div>
+      </div>
+
+      <!-- Example food cards -->
+      <div class="space-y-3 flex-1">
+        <div class="bg-[#111] border border-[#1A1A1A] rounded-2xl p-4 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-white/5">
+            <img src="./images/generated-1773972211809.png" class="w-full h-full object-cover" alt="Salmon">
+          </div>
+          <div class="flex-1">
+            <div class="font-semibold text-sm">Grilled Salmon Bowl</div>
+            <div class="text-white/40 text-xs">420 cal · 18g fat · 42g protein</div>
+          </div>
+          <div class="text-right">
+            <div class="text-gain font-bold text-xl">+12</div>
+            <div class="text-white/30 text-xs">min</div>
+          </div>
+        </div>
+        <div class="bg-[#111] border border-[#1A1A1A] rounded-2xl p-4 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-white/5">
+            <img src="./images/generated-1773972195896.png" class="w-full h-full object-cover" alt="Burger">
+          </div>
+          <div class="flex-1">
+            <div class="font-semibold text-sm">Double Cheeseburger</div>
+            <div class="text-white/40 text-xs">742 cal · 48g fat · 32g protein</div>
+          </div>
+          <div class="text-right">
+            <div class="text-loss font-bold text-xl">-36</div>
+            <div class="text-white/30 text-xs">min</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-2 justify-center mb-6" id="dots-4"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <button onclick="showStep(5)" class="bg-white/10 border border-white/10 font-semibold rounded-xl py-3.5 text-base active:scale-95 transition-transform">Skip</button>
+        <button onclick="showStep(5)" class="bg-white text-bg font-semibold rounded-xl py-3.5 text-base active:scale-95 transition-transform flex items-center justify-center gap-2">
+          Next
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-7-7l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 5: About You -->
+    <div id="ob-step-5" class="flex-1 flex flex-col min-h-screen px-8 pt-16 pb-10 hidden">
+      <h1 class="text-2xl font-extrabold mb-2">About You</h1>
+      <p class="text-white/40 text-sm mb-8">We need a few details to personalize your life impact calculations.</p>
+
+      <div class="space-y-5 flex-1">
+        <div>
+          <label class="text-white/60 text-xs font-medium uppercase tracking-wider mb-2 block">Name</label>
+          <div class="relative">
+            <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0"/></svg>
+            <input id="ob-name" type="text" placeholder="Your name" class="w-full bg-[#111] border border-[#222] rounded-xl pl-11 pr-4 py-3 text-white placeholder-white/30">
+          </div>
+        </div>
+        <div>
+          <label class="text-white/60 text-xs font-medium uppercase tracking-wider mb-2 block">Gender</label>
+          <div class="relative">
+            <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0"/></svg>
+            <select id="ob-gender" class="w-full bg-[#111] border border-[#222] rounded-xl pl-11 pr-4 py-3 text-white/30 appearance-none">
+              <option value="" disabled selected>Select gender</option>
+              <option value="male" class="text-white bg-bg">Male</option>
+              <option value="female" class="text-white bg-bg">Female</option>
+              <option value="other" class="text-white bg-bg">Other</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="text-white/60 text-xs font-medium uppercase tracking-wider mb-2 block">Weight</label>
+          <div class="relative">
+            <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75"/></svg>
+            <input id="ob-weight" type="number" placeholder="Weight in kg" class="w-full bg-[#111] border border-[#222] rounded-xl pl-11 pr-4 py-3 text-white placeholder-white/30">
+          </div>
+        </div>
+        <div>
+          <label class="text-white/60 text-xs font-medium uppercase tracking-wider mb-2 block">Height</label>
+          <div class="relative">
+            <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5"/></svg>
+            <input id="ob-height" type="number" placeholder="Height in cm" class="w-full bg-[#111] border border-[#222] rounded-xl pl-11 pr-4 py-3 text-white placeholder-white/30">
+          </div>
+        </div>
+        <div>
+          <label class="text-white/60 text-xs font-medium uppercase tracking-wider mb-2 block">Smoking</label>
+          <div class="grid grid-cols-2 gap-3" id="smoke-toggle">
+            <button type="button" data-smoke="true" class="flex items-center justify-center gap-2 bg-[#111] border border-[#222] rounded-xl py-3 text-sm font-medium text-white/60 active:scale-95 transition-all">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 17h12M17 17h1m2 0h1M6 12c0-3 2.5-4 2.5-7M10 12c0-3 2.5-4 2.5-7"/></svg>
+              Yes
+            </button>
+            <button type="button" data-smoke="false" class="flex items-center justify-center gap-2 bg-[#111] border-2 border-gain rounded-xl py-3 text-sm font-medium text-white active:scale-95 transition-all">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 17h12M17 17h1m2 0h1M6 12c0-3 2.5-4 2.5-7M10 12c0-3 2.5-4 2.5-7M2 2l20 20"/></svg>
+              No
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-2 justify-center mb-6" id="dots-5"></div>
+      <button onclick="showStep(6)" class="w-full bg-white text-bg font-semibold rounded-xl py-3.5 text-base active:scale-95 transition-transform">Continue</button>
+    </div>
+
+    <!-- Step 6: Set Your Goal -->
+    <div id="ob-step-6" class="flex-1 flex flex-col min-h-screen px-8 pt-16 pb-10 hidden">
+      <h1 class="text-2xl font-extrabold mb-2 text-center">Set your daily goal</h1>
+      <p class="text-white/40 text-sm mb-8 text-center">Choose a target that fits your lifestyle. You can always change this later.</p>
+
+      <div class="space-y-4 flex-1" id="goal-cards">
+        <!-- Casual -->
+        <button type="button" data-goal="30" class="goal-card w-full bg-[#111] border border-[#222] rounded-2xl p-5 flex items-center gap-4 text-left active:scale-[0.98] transition-all">
+          <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="font-semibold text-sm">Casual</div>
+            <div class="text-white/40 text-xs">+30 min/day · For awareness</div>
+          </div>
+          <div class="text-gain font-bold text-2xl">+30</div>
+        </button>
+        <!-- Committed (recommended) -->
+        <button type="button" data-goal="60" class="goal-card w-full bg-[#111] border-2 border-gain rounded-2xl p-5 flex items-center gap-4 text-left active:scale-[0.98] transition-all relative">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gain/20 text-gain text-[10px] font-semibold px-3 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>
+            Recommended
+          </div>
+          <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="font-semibold text-sm">Committed</div>
+            <div class="text-white/40 text-xs">+60 min/day · For real change</div>
+          </div>
+          <div class="text-gain font-bold text-2xl">+60</div>
+        </button>
+        <!-- Ambitious -->
+        <button type="button" data-goal="120" class="goal-card w-full bg-[#111] border border-[#222] rounded-2xl p-5 flex items-center gap-4 text-left active:scale-[0.98] transition-all">
+          <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/></svg>
+          </div>
+          <div class="flex-1">
+            <div class="font-semibold text-sm">Ambitious</div>
+            <div class="text-white/40 text-xs">+120 min/day · For transformation</div>
+          </div>
+          <div class="text-gain font-bold text-2xl">+120</div>
+        </button>
+      </div>
+
+      <div class="flex gap-2 justify-center mb-6" id="dots-6"></div>
+      <button onclick="showStep(7)" class="w-full bg-white text-bg font-semibold rounded-xl py-3.5 text-base active:scale-95 transition-transform flex items-center justify-center gap-2">
+        Continue
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-7-7l7 7-7 7"/></svg>
       </button>
     </div>
+
+    <!-- Step 7: Ready -->
+    <div id="ob-step-7" class="flex-1 flex flex-col items-center justify-center min-h-screen px-8 pb-10 hidden">
+      <div class="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center mb-6">
+        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+      </div>
+      <h1 class="text-2xl font-extrabold mb-3 text-center">You're all set!</h1>
+      <p class="text-white/40 text-sm mb-8 text-center max-w-xs">Start scanning your meals to discover their real impact on your life. Every bite counts.</p>
+
+      <div class="grid grid-cols-2 gap-4 w-full max-w-xs mb-10">
+        <div class="bg-[#111] border border-[#1A1A1A] rounded-2xl p-5 text-center">
+          <div class="text-3xl font-bold mb-1">0</div>
+          <div class="text-white/40 text-xs">Scans today</div>
+        </div>
+        <div class="bg-[#111] border border-[#1A1A1A] rounded-2xl p-5 text-center">
+          <div class="text-3xl font-bold text-gain mb-1">+0</div>
+          <div class="text-white/40 text-xs">Minutes gained</div>
+        </div>
+      </div>
+
+      <div class="flex gap-2 justify-center mb-6" id="dots-7"></div>
+      <button id="ob-start" class="w-full max-w-xs bg-white text-bg font-semibold rounded-xl py-3.5 text-base active:scale-95 transition-transform flex items-center justify-center gap-2">
+        Start Scanning
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 3.75H6A2.25 2.25 0 003.75 6v1.5M16.5 3.75H18A2.25 2.25 0 0120.25 6v1.5M20.25 16.5V18A2.25 2.25 0 0118 20.25h-1.5M3.75 16.5V18A2.25 2.25 0 006 20.25h1.5"/></svg>
+      </button>
+      <p class="text-white/20 text-xs mt-6">Your data stays on your device. Always.</p>
+    </div>
+
   </div>
 
   <!-- ===== RESULT OVERLAY ===== -->
@@ -161,6 +454,17 @@
         <div id="bar-gain" class="life-bar-inner absolute top-0 bottom-0 left-1/2 bg-gain/80 rounded-r-full" style="width: 0%"></div>
         <!-- Red bar (grows left from center) -->
         <div id="bar-loss" class="life-bar-inner absolute top-0 bottom-0 right-1/2 bg-loss/80 rounded-l-full" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <!-- Daily Goal -->
+    <div class="mb-8" id="daily-goal-section">
+      <div class="flex justify-between items-baseline mb-2">
+        <span class="text-white/40 text-xs font-medium uppercase tracking-wider">Daily Goal</span>
+        <span id="goal-progress-text" class="text-sm font-bold text-gain">+0 / +60 min</span>
+      </div>
+      <div class="relative h-2 bg-white/5 rounded-full overflow-hidden">
+        <div id="goal-bar-fill" class="absolute top-0 left-0 bottom-0 bg-gain/80 rounded-full transition-all duration-700" style="width: 0%"></div>
       </div>
     </div>
 
@@ -254,29 +558,81 @@
       const profile = localStorage.getItem('lifespan_profile');
       if (!profile) {
         $('onboarding').classList.remove('hidden');
+        showStep(1);
       }
       renderHistory();
       updateLifeBar();
+      updateGoalBar();
       loadScansFromDb();
     }
 
-    // --- Gender select text color ---
+    // --- Onboarding Wizard ---
+    const TOTAL_STEPS = 7;
+    let currentStep = 1;
+    let smokingSelected = false;
+    let selectedGoal = 60;
+
+    function showStep(n) {
+      currentStep = n;
+      for (let i = 1; i <= TOTAL_STEPS; i++) {
+        const el = $(`ob-step-${i}`);
+        if (el) el.classList.toggle('hidden', i !== n);
+      }
+      // Update dots for current step
+      for (let i = 1; i <= TOTAL_STEPS; i++) {
+        const dotsEl = $(`dots-${i}`);
+        if (dotsEl) {
+          dotsEl.innerHTML = Array.from({ length: TOTAL_STEPS }, (_, j) =>
+            `<div class="w-2 h-2 rounded-full ${j + 1 === n ? 'bg-white' : 'bg-[#333]'}"></div>`
+          ).join('');
+        }
+      }
+    }
+    // Expose to inline onclick handlers
+    window.showStep = showStep;
+
+    // Gender select text color
     $('ob-gender').addEventListener('change', (e) => {
       e.target.classList.toggle('text-white/30', !e.target.value);
       e.target.classList.toggle('text-white', !!e.target.value);
     });
 
-    // --- Onboarding ---
+    // Smoking toggle
+    $('smoke-toggle').addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-smoke]');
+      if (!btn) return;
+      smokingSelected = btn.dataset.smoke === 'true';
+      $('smoke-toggle').querySelectorAll('[data-smoke]').forEach(b => {
+        const isActive = b === btn;
+        b.className = `flex items-center justify-center gap-2 bg-[#111] ${isActive ? 'border-2 border-gain text-white' : 'border border-[#222] text-white/60'} rounded-xl py-3 text-sm font-medium active:scale-95 transition-all`;
+      });
+    });
+
+    // Goal card selection
+    $('goal-cards').addEventListener('click', (e) => {
+      const card = e.target.closest('[data-goal]');
+      if (!card) return;
+      selectedGoal = parseInt(card.dataset.goal);
+      $('goal-cards').querySelectorAll('.goal-card').forEach(c => {
+        const isActive = c === card;
+        c.className = `goal-card w-full bg-[#111] ${isActive ? 'border-2 border-gain' : 'border border-[#222]'} rounded-2xl p-5 flex items-center gap-4 text-left active:scale-[0.98] transition-all${c.querySelector('.absolute') ? ' relative' : ''}`;
+      });
+    });
+
+    // Final "Start Scanning" button
     $('ob-start').addEventListener('click', () => {
       const profile = {
         name: $('ob-name').value || 'User',
-        age: parseInt($('ob-age').value) || 30,
+        age: 30,
         gender: $('ob-gender').value || 'other',
         weight: parseFloat($('ob-weight').value) || 70,
         height: parseFloat($('ob-height').value) || 170,
+        smokes: smokingSelected,
+        daily_goal: selectedGoal,
       };
       localStorage.setItem('lifespan_profile', JSON.stringify(profile));
       $('onboarding').classList.add('hidden');
+      updateGoalBar();
     });
 
     // --- Camera ---
@@ -398,7 +754,8 @@
       $('loading-text').textContent = 'Analyzing your food...';
       $('loading-overlay').classList.remove('hidden');
       try {
-        const nutrition = await analyzeFood(base64);
+        const profile = JSON.parse(localStorage.getItem('lifespan_profile') || '{}');
+        const nutrition = await analyzeFood(base64, { smokes: profile.smokes });
         const result = score(nutrition);
 
         // Save to history
@@ -468,6 +825,29 @@
 
       $('bar-gain').style.width = gainPct + '%';
       $('bar-loss').style.width = lossPct + '%';
+
+      updateGoalBar();
+    }
+
+    // --- Daily Goal Bar ---
+    function updateGoalBar() {
+      const profile = JSON.parse(localStorage.getItem('lifespan_profile') || '{}');
+      const goal = profile.daily_goal ?? 60;
+
+      // Calculate today's minutes from history
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const todayMs = todayStart.getTime();
+      const todayMin = history
+        .filter(h => h.timestamp >= todayMs)
+        .reduce((sum, h) => sum + h.minutes, 0);
+
+      const sign = todayMin >= 0 ? '+' : '';
+      $('goal-progress-text').textContent = `${sign}${todayMin} / +${goal} min`;
+      $('goal-progress-text').className = `text-sm font-bold ${todayMin >= 0 ? 'text-gain' : 'text-loss'}`;
+
+      const pct = goal > 0 ? Math.min(Math.max(todayMin / goal, 0) * 100, 100) : 0;
+      $('goal-bar-fill').style.width = pct + '%';
     }
 
     // --- History ---

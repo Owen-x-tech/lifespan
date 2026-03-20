@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Liv ai — Algorithm Comparison</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg: '#0a0a0a',
+            gain: '#22c55e',
+            loss: '#ef4444',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+    @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+    .loading-pulse { animation: pulse 1.2s infinite; }
+    #fileInput { display: none; }
+  </style>
+</head>
+<body class="bg-bg text-white min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="px-6 pt-12 pb-6 text-center">
+    <h1 class="text-2xl font-bold mb-1">Algorithm Comparison</h1>
+    <p class="text-sm text-gray-400">Same food photo. Two different scoring approaches.</p>
+  </header>
+
+  <!-- Scan Button -->
+  <div id="scanArea" class="flex flex-col items-center gap-4 px-6 pb-8">
+    <p class="text-sm text-gray-500 text-center max-w-xs">Take a photo of any food. We'll run it through both our research-backed algorithm and a raw AI estimation side by side.</p>
+    <button id="captureBtn" class="w-20 h-20 rounded-full bg-white/10 border-2 border-white/30 flex items-center justify-center hover:bg-white/20 transition-all active:scale-95">
+      <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg>
+    </button>
+    <input type="file" id="fileInput" accept="image/*" capture="environment">
+  </div>
+
+  <!-- Results Area -->
+  <div id="results" class="hidden flex-1 px-4 pb-8">
+    <!-- Food identified -->
+    <div id="foodInfo" class="text-center mb-6">
+      <h2 id="foodName" class="text-xl font-bold"></h2>
+      <p id="foodPortion" class="text-sm text-gray-400"></p>
+    </div>
+
+    <!-- Side-by-side -->
+    <div class="grid grid-cols-2 gap-3">
+      <!-- Liv Column -->
+      <div class="bg-white/5 rounded-2xl p-4 border border-white/10">
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-2 h-2 rounded-full bg-gain"></div>
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-400">Liv Algorithm</h3>
+        </div>
+        <div id="livLoading" class="loading-pulse text-center py-8">
+          <div class="text-sm text-gray-500">Analyzing...</div>
+        </div>
+        <div id="livResult" class="hidden">
+          <div id="livMinutes" class="text-4xl font-extrabold text-center mb-3"></div>
+          <div class="text-[10px] text-gray-500 uppercase tracking-wider mb-2 text-center">Breakdown</div>
+          <ul id="livFactors" class="space-y-1"></ul>
+        </div>
+        <div id="livError" class="hidden text-sm text-red-400 text-center py-4"></div>
+      </div>
+
+      <!-- Naive Column -->
+      <div class="bg-white/5 rounded-2xl p-4 border border-white/10">
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-2 h-2 rounded-full bg-gray-500"></div>
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-400">Raw GPT-4o</h3>
+        </div>
+        <div id="naiveLoading" class="loading-pulse text-center py-8">
+          <div class="text-sm text-gray-500">Analyzing...</div>
+        </div>
+        <div id="naiveResult" class="hidden">
+          <div id="naiveMinutes" class="text-4xl font-extrabold text-center mb-3"></div>
+          <div class="text-[10px] text-gray-500 uppercase tracking-wider mb-2 text-center">AI Reasoning</div>
+          <p id="naiveReasoning" class="text-xs text-gray-400 leading-relaxed"></p>
+        </div>
+        <div id="naiveError" class="hidden text-sm text-red-400 text-center py-4"></div>
+      </div>
+    </div>
+
+    <!-- Difference callout -->
+    <div id="diffCallout" class="hidden mt-4 bg-white/5 rounded-2xl p-4 border border-white/10 text-center fade-in">
+      <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Difference</p>
+      <p id="diffText" class="text-sm font-medium"></p>
+    </div>
+
+    <!-- Method explanation -->
+    <div class="mt-6 space-y-3 px-2">
+      <div class="flex gap-3">
+        <div class="w-2 h-2 rounded-full bg-gain mt-1.5 shrink-0"></div>
+        <p class="text-xs text-gray-500"><span class="text-gray-300 font-medium">Liv Algorithm:</span> GPT-4o extracts nutrition data → scored through our Spiegelhalter (2012) BMJ microlife framework with calibrated per-nutrient impact factors.</p>
+      </div>
+      <div class="flex gap-3">
+        <div class="w-2 h-2 rounded-full bg-gray-500 mt-1.5 shrink-0"></div>
+        <p class="text-xs text-gray-500"><span class="text-gray-300 font-medium">Raw GPT-4o:</span> Same model, but asked directly "how many minutes of life?" — no structured scoring, just the AI's general knowledge.</p>
+      </div>
+    </div>
+
+    <!-- Scan again -->
+    <div class="mt-8 text-center">
+      <button id="scanAgainBtn" class="px-6 py-3 bg-white/10 rounded-full text-sm font-medium hover:bg-white/20 transition-all active:scale-95">Scan Another</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { score } from '../microlife.js';
+
+    const captureBtn = document.getElementById('captureBtn');
+    const fileInput = document.getElementById('fileInput');
+    const scanArea = document.getElementById('scanArea');
+    const results = document.getElementById('results');
+    const scanAgainBtn = document.getElementById('scanAgainBtn');
+
+    captureBtn.addEventListener('click', () => fileInput.click());
+    scanAgainBtn.addEventListener('click', () => {
+      results.classList.add('hidden');
+      scanArea.classList.remove('hidden');
+      resetResults();
+    });
+
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const base64 = await fileToBase64(file);
+      scanArea.classList.add('hidden');
+      results.classList.remove('hidden');
+      resetResults();
+      showLoading();
+
+      // Fire both API calls in parallel
+      const [livResponse, naiveResponse] = await Promise.allSettled([
+        fetchLiv(base64),
+        fetchNaive(base64)
+      ]);
+
+      // Handle Liv result
+      if (livResponse.status === 'fulfilled') {
+        const nutrition = livResponse.value;
+        const result = score(nutrition);
+        document.getElementById('foodName').textContent = nutrition.food_name;
+        document.getElementById('foodPortion').textContent = nutrition.portion;
+        showLivResult(result);
+      } else {
+        showLivError(livResponse.reason?.message || 'Analysis failed');
+      }
+
+      // Handle Naive result
+      if (naiveResponse.status === 'fulfilled') {
+        const result = naiveResponse.value;
+        // If Liv didn't get food name, use naive's
+        if (!document.getElementById('foodName').textContent) {
+          document.getElementById('foodName').textContent = result.food_name;
+          document.getElementById('foodPortion').textContent = result.portion;
+        }
+        showNaiveResult(result);
+      } else {
+        showNaiveError(naiveResponse.reason?.message || 'Analysis failed');
+      }
+
+      // Show difference if both succeeded
+      if (livResponse.status === 'fulfilled' && naiveResponse.status === 'fulfilled') {
+        const livMinutes = score(livResponse.value).minutes;
+        const naiveMinutes = naiveResponse.value.minutes;
+        showDifference(livMinutes, naiveMinutes);
+      }
+
+      fileInput.value = '';
+    });
+
+    function fileToBase64(file) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function fetchLiv(base64) {
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64 })
+      });
+      if (!res.ok) throw new Error(`API error ${res.status}`);
+      return res.json();
+    }
+
+    async function fetchNaive(base64) {
+      const res = await fetch('/api/analyze-naive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64 })
+      });
+      if (!res.ok) throw new Error(`API error ${res.status}`);
+      return res.json();
+    }
+
+    function resetResults() {
+      document.getElementById('foodName').textContent = '';
+      document.getElementById('foodPortion').textContent = '';
+      ['livResult', 'livError', 'naiveResult', 'naiveError', 'diffCallout'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
+    }
+
+    function showLoading() {
+      document.getElementById('livLoading').classList.remove('hidden');
+      document.getElementById('naiveLoading').classList.remove('hidden');
+    }
+
+    function formatMinutes(min) {
+      const sign = min >= 0 ? '+' : '';
+      return `${sign}${min} min`;
+    }
+
+    function minuteColor(min) {
+      return min >= 0 ? 'text-gain' : 'text-loss';
+    }
+
+    function showLivResult(result) {
+      document.getElementById('livLoading').classList.add('hidden');
+      const el = document.getElementById('livResult');
+      el.classList.remove('hidden');
+      el.classList.add('fade-in');
+
+      document.getElementById('livMinutes').textContent = formatMinutes(result.minutes);
+      document.getElementById('livMinutes').className = `text-4xl font-extrabold text-center mb-3 ${minuteColor(result.minutes)}`;
+
+      const list = document.getElementById('livFactors');
+      list.innerHTML = '';
+      result.factors.forEach(f => {
+        const li = document.createElement('li');
+        li.className = 'text-[11px] text-gray-400';
+        li.textContent = f;
+        list.appendChild(li);
+      });
+    }
+
+    function showLivError(msg) {
+      document.getElementById('livLoading').classList.add('hidden');
+      const el = document.getElementById('livError');
+      el.classList.remove('hidden');
+      el.textContent = msg;
+    }
+
+    function showNaiveResult(result) {
+      document.getElementById('naiveLoading').classList.add('hidden');
+      const el = document.getElementById('naiveResult');
+      el.classList.remove('hidden');
+      el.classList.add('fade-in');
+
+      document.getElementById('naiveMinutes').textContent = formatMinutes(result.minutes);
+      document.getElementById('naiveMinutes').className = `text-4xl font-extrabold text-center mb-3 ${minuteColor(result.minutes)}`;
+      document.getElementById('naiveReasoning').textContent = result.reasoning;
+    }
+
+    function showNaiveError(msg) {
+      document.getElementById('naiveLoading').classList.add('hidden');
+      const el = document.getElementById('naiveError');
+      el.classList.remove('hidden');
+      el.textContent = msg;
+    }
+
+    function showDifference(livMin, naiveMin) {
+      const diff = Math.abs(livMin - naiveMin);
+      const callout = document.getElementById('diffCallout');
+      callout.classList.remove('hidden');
+
+      const diffText = document.getElementById('diffText');
+      if (diff === 0) {
+        diffText.textContent = 'Both methods agree exactly.';
+        diffText.className = 'text-sm font-medium text-gray-400';
+      } else if (diff <= 5) {
+        diffText.textContent = `Only ${diff} min apart — similar estimates.`;
+        diffText.className = 'text-sm font-medium text-gray-400';
+      } else {
+        diffText.innerHTML = `<span class="text-white font-bold">${diff} min apart.</span> <span class="text-gray-400">The AI's guess ${naiveMin > livMin ? 'over' : 'under'}estimates by ${diff} minutes vs. our calibrated scoring.</span>`;
+      }
+    }
+  </script>
+</body>
+</html>
