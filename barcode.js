@@ -60,13 +60,12 @@ export async function lookupBarcode(code) {
     saturated_fat_g: round1((n['saturated-fat_100g'] || 0) * factor),
     trans_fat_g: round1((n['trans-fat_100g'] || 0) * factor),
     sodium_mg: Math.round((n['sodium_100g'] || 0) * 1000 * factor),
-    sugar_g: round1((n['sugars_100g'] || 0) * factor),
+    added_sugar_g: hasTag(categories, FRUIT_VEG_TAGS) ? 0 : round1((n['sugars_100g'] || 0) * factor),
     fibre_g: round1((n['fiber_100g'] || 0) * factor),
-    fruit_veg_servings: hasTag(categories, FRUIT_VEG_TAGS) ? 1 : 0,
+    fruit_veg_servings: hasTag(categories, FRUIT_VEG_TAGS) ? Math.min(Math.round(servingG / 80), 5) : 0,
     is_oily_fish: hasTag(categories, OILY_FISH_TAGS),
     is_processed_meat: hasTag(categories, PROCESSED_MEAT_TAGS),
-    is_red_meat: hasTag(categories, RED_MEAT_TAGS),
-    is_whole_food: false
+    is_red_meat: hasTag(categories, RED_MEAT_TAGS)
   };
 }
 

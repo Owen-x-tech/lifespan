@@ -1,10 +1,10 @@
 // Calls the serverless API proxy (no client-side API key needed)
 
-export async function analyzeFood(base64Image, { smokes } = {}) {
+export async function analyzeFood(base64Image) {
   const response = await fetch('/api/analyze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ image: base64Image, smokes: !!smokes })
+    body: JSON.stringify({ image: base64Image })
   });
 
   if (!response.ok) {
