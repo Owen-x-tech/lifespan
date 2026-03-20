@@ -31,6 +31,17 @@
 </head>
 <body class="bg-bg text-white min-h-screen flex flex-col">
 
+  <!-- ===== CAMERA OVERLAY ===== -->
+  <div id="camera-overlay" class="fixed inset-0 z-30 bg-bg flex flex-col hidden">
+    <video id="viewfinder" class="flex-1 object-cover w-full" autoplay playsinline></video>
+    <div class="absolute bottom-0 inset-x-0 pb-10 pt-6 flex justify-center bg-gradient-to-t from-bg/90 to-transparent">
+      <button id="camera-capture" class="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center active:scale-90 transition-transform">
+        <div class="w-16 h-16 rounded-full bg-white"></div>
+      </button>
+    </div>
+    <button id="camera-close" class="absolute top-12 left-5 text-white/70 text-3xl">&times;</button>
+  </div>
+
   <!-- Header -->
   <header class="px-6 pt-12 pb-6 text-center">
     <h1 class="text-2xl font-bold mb-1">Algorithm Comparison</h1>
@@ -118,68 +129,109 @@
   <script type="module">
     import { score } from '../microlife.js';
 
-    const captureBtn = document.getElementById('captureBtn');
-    const fileInput = document.getElementById('fileInput');
-    const scanArea = document.getElementById('scanArea');
-    const results = document.getElementById('results');
-    const scanAgainBtn = document.getElementById('scanAgainBtn');
+    const $ = id => document.getElementById(id);
+    const captureBtn = $('captureBtn');
+    const fileInput = $('fileInput');
+    const scanArea = $('scanArea');
+    const results = $('results');
+    const scanAgainBtn = $('scanAgainBtn');
 
-    captureBtn.addEventListener('click', () => fileInput.click());
+    let stream = null;
+
+    // --- Camera ---
+    async function openCamera() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 960 } }
+        });
+        $('viewfinder').srcObject = stream;
+        $('camera-overlay').classList.remove('hidden');
+      } catch (e) {
+        // Fallback to file input
+        fileInput.click();
+      }
+    }
+
+    function closeCamera() {
+      if (stream) {
+        stream.getTracks().forEach(t => t.stop());
+        stream = null;
+      }
+      $('camera-overlay').classList.add('hidden');
+    }
+
+    function captureFrame() {
+      const video = $('viewfinder');
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0);
+      return canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+    }
+
+    captureBtn.addEventListener('click', () => openCamera());
+    $('camera-close').addEventListener('click', closeCamera);
+
+    $('camera-capture').addEventListener('click', async () => {
+      const base64 = captureFrame();
+      closeCamera();
+      await runComparison(base64);
+    });
+
+    // File input fallback
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const base64 = await fileToBase64(file);
+      fileInput.value = '';
+      await runComparison(base64);
+    });
+
     scanAgainBtn.addEventListener('click', () => {
       results.classList.add('hidden');
       scanArea.classList.remove('hidden');
       resetResults();
     });
 
-    fileInput.addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const base64 = await fileToBase64(file);
+    async function runComparison(base64) {
       scanArea.classList.add('hidden');
       results.classList.remove('hidden');
       resetResults();
       showLoading();
 
-      // Fire both API calls in parallel
       const [livResponse, naiveResponse] = await Promise.allSettled([
         fetchLiv(base64),
         fetchNaive(base64)
       ]);
 
-      // Handle Liv result
       if (livResponse.status === 'fulfilled') {
         const nutrition = livResponse.value;
         const result = score(nutrition);
-        document.getElementById('foodName').textContent = nutrition.food_name;
-        document.getElementById('foodPortion').textContent = nutrition.portion;
+        $('foodName').textContent = nutrition.food_name;
+        $('foodPortion').textContent = nutrition.portion;
         showLivResult(result);
       } else {
         showLivError(livResponse.reason?.message || 'Analysis failed');
       }
 
-      // Handle Naive result
       if (naiveResponse.status === 'fulfilled') {
         const result = naiveResponse.value;
-        // If Liv didn't get food name, use naive's
-        if (!document.getElementById('foodName').textContent) {
-          document.getElementById('foodName').textContent = result.food_name;
-          document.getElementById('foodPortion').textContent = result.portion;
+        if (!$('foodName').textContent) {
+          $('foodName').textContent = result.food_name;
+          $('foodPortion').textContent = result.portion;
         }
         showNaiveResult(result);
       } else {
         showNaiveError(naiveResponse.reason?.message || 'Analysis failed');
       }
 
-      // Show difference if both succeeded
       if (livResponse.status === 'fulfilled' && naiveResponse.status === 'fulfilled') {
         const livMinutes = score(livResponse.value).minutes;
         const naiveMinutes = naiveResponse.value.minutes;
         showDifference(livMinutes, naiveMinutes);
       }
-
-      fileInput.value = '';
-    });
+    }
 
     function fileToBase64(file) {
       return new Promise((resolve) => {
