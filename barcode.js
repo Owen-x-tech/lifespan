@@ -22,6 +22,11 @@ const RED_MEAT_TAGS = [
   'en:meats', 'en:red-meats', 'en:ground-beef', 'en:steaks'
 ];
 
+const OILY_FISH_TAGS = [
+  'en:salmon', 'en:mackerel', 'en:sardines', 'en:herring', 'en:trout',
+  'en:anchovies', 'en:smoked-salmon', 'en:canned-sardines', 'en:canned-mackerel'
+];
+
 function hasTag(categories, tagList) {
   if (!categories) return false;
   const tags = Array.isArray(categories) ? categories : [];
@@ -57,7 +62,8 @@ export async function lookupBarcode(code) {
     sodium_mg: Math.round((n['sodium_100g'] || 0) * 1000 * factor),
     sugar_g: round1((n['sugars_100g'] || 0) * factor),
     fibre_g: round1((n['fiber_100g'] || 0) * factor),
-    is_fruit_or_veg: hasTag(categories, FRUIT_VEG_TAGS),
+    fruit_veg_servings: hasTag(categories, FRUIT_VEG_TAGS) ? 1 : 0,
+    is_oily_fish: hasTag(categories, OILY_FISH_TAGS),
     is_processed_meat: hasTag(categories, PROCESSED_MEAT_TAGS),
     is_red_meat: hasTag(categories, RED_MEAT_TAGS),
     is_whole_food: false

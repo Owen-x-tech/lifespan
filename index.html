@@ -315,8 +315,8 @@
           <div class="text-gain font-bold text-2xl">+30</div>
         </button>
         <!-- Committed (recommended) -->
-        <button type="button" data-goal="60" class="goal-card w-full bg-[#111] border-2 border-gain rounded-2xl p-5 flex items-center gap-4 text-left active:scale-[0.98] transition-all relative">
-          <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gain/20 text-gain text-[10px] font-semibold px-3 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+        <button type="button" data-goal="60" class="goal-card w-full bg-[#111] border-2 border-gain rounded-2xl p-5 pt-7 flex items-center gap-4 text-left active:scale-[0.98] transition-all relative mt-2">
+          <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#0a2a14] text-gain text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-wider flex items-center gap-1 border border-gain/30">
             <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>
             Recommended
           </div>
@@ -380,8 +380,8 @@
   </div>
 
   <!-- ===== RESULT OVERLAY ===== -->
-  <div id="result-overlay" class="fixed inset-0 z-40 bg-bg/95 backdrop-blur-sm flex flex-col items-center justify-center px-8 hidden">
-    <div class="overlay-enter w-full max-w-sm text-center">
+  <div id="result-overlay" class="fixed inset-0 z-40 bg-bg/95 backdrop-blur-sm flex flex-col items-center overflow-y-auto px-8 hidden">
+    <div class="overlay-enter w-full max-w-sm text-center py-12">
       <div id="result-delta" class="text-6xl font-extrabold mb-1 count-anim"></div>
       <div class="text-white/30 text-xs uppercase tracking-widest mb-4">per serving</div>
       <div id="result-food" class="text-white/60 text-lg mb-6"></div>
@@ -393,6 +393,26 @@
       <button id="result-share" class="w-full bg-white text-bg font-semibold rounded-xl py-3.5 text-lg active:scale-95 transition-transform mb-3">
         Share Result
       </button>
+
+      <!-- Coaching button -->
+      <button id="coach-improve" class="w-full border border-gain/40 text-gain font-semibold rounded-xl py-3 text-sm active:scale-95 transition-transform flex items-center justify-center gap-2 mb-3">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z"/></svg>
+        Make This A+
+      </button>
+
+      <!-- Coaching content area -->
+      <div id="coach-container" class="hidden mb-3">
+        <div id="coach-loading" class="hidden py-6">
+          <div class="w-8 h-8 border-3 border-gain/20 border-t-gain rounded-full animate-spin mx-auto mb-3"></div>
+          <p id="coach-loading-text" class="text-white/40 text-sm">Getting suggestions...</p>
+        </div>
+        <div id="coach-content" class="hidden text-left space-y-3"></div>
+        <div id="coach-error" class="hidden py-4">
+          <p class="text-white/40 text-sm mb-2">Couldn't load suggestions</p>
+          <button id="coach-retry" class="text-gain text-sm font-medium underline">Try again</button>
+        </div>
+      </div>
+
       <button id="result-done" class="w-full bg-white/10 border border-white/10 font-semibold rounded-xl py-3.5 text-lg active:scale-95 transition-transform">
         Done
       </button>
@@ -441,8 +461,22 @@
     <p id="loading-text" class="text-white/60">Analyzing your food...</p>
   </div>
 
-  <!-- ===== MAIN SCREEN ===== -->
-  <div class="flex-1 flex flex-col px-5 pt-14 pb-6 w-full max-w-[430px] mx-auto">
+  <!-- ===== BOTTOM NAV BAR ===== -->
+  <nav id="bottom-nav" class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-20 bg-[#111] border-t border-white/10 pb-[env(safe-area-inset-bottom)]">
+    <div class="flex">
+      <button id="nav-scan" onclick="switchTab('scan')" class="flex-1 flex flex-col items-center gap-1 py-3 text-gain">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="text-xs font-medium">Scan</span>
+      </button>
+      <button id="nav-ideas" onclick="switchTab('ideas')" class="flex-1 flex flex-col items-center gap-1 py-3 text-white/40">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"/></svg>
+        <span class="text-xs font-medium">Meal Ideas</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ===== MAIN SCREEN (Scan Tab) ===== -->
+  <div id="scan-tab" class="flex-1 flex flex-col px-5 pt-14 pb-20 w-full max-w-[430px] mx-auto">
 
     <!-- Header -->
     <div class="mb-6">
@@ -501,10 +535,51 @@
     </div>
   </div>
 
+  <!-- ===== MEAL IDEAS TAB ===== -->
+  <div id="ideas-tab" class="hidden flex-1 flex flex-col px-5 pt-14 pb-20 w-full max-w-[430px] mx-auto overflow-y-auto">
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold">Meal Ideas</h1>
+      <p class="text-white/40 text-sm mt-1">Discover meals that add minutes to your life</p>
+    </div>
+
+    <!-- Action buttons (hidden when empty) -->
+    <div id="ideas-actions" class="hidden flex gap-3 mb-4">
+      <button id="ideas-clear" class="flex-1 bg-white/10 border border-white/10 font-semibold rounded-xl py-2.5 text-sm active:scale-95 transition-transform">Clear List</button>
+      <button id="ideas-more" class="flex-1 bg-gain/20 border border-gain/40 text-gain font-semibold rounded-xl py-2.5 text-sm active:scale-95 transition-transform">Generate More</button>
+    </div>
+
+    <!-- Meal cards list -->
+    <div id="ideas-list" class="flex-1 overflow-y-auto space-y-3"></div>
+
+    <!-- Empty state -->
+    <div id="ideas-empty" class="flex-1 flex flex-col items-center justify-center">
+      <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+        <svg class="w-8 h-8 text-white/20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"/></svg>
+      </div>
+      <p class="text-white/30 text-sm mb-4">Get AI-powered healthy meal suggestions</p>
+      <button id="ideas-generate" class="bg-gain text-bg font-semibold rounded-xl px-8 py-3 text-sm active:scale-95 transition-transform flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z"/></svg>
+        Generate Ideas
+      </button>
+    </div>
+
+    <!-- Loading spinner (appended below cards) -->
+    <div id="ideas-loading" class="hidden py-6 flex flex-col items-center">
+      <div class="w-8 h-8 border-3 border-gain/20 border-t-gain rounded-full animate-spin mb-3"></div>
+      <p class="text-white/40 text-sm">Finding healthy meals...</p>
+    </div>
+
+    <!-- Error state -->
+    <div id="ideas-error" class="hidden py-4 text-center">
+      <p class="text-white/40 text-sm mb-2">Couldn't load meal ideas</p>
+      <button id="ideas-retry" class="text-gain text-sm font-medium underline">Try again</button>
+    </div>
+  </div>
+
   <!-- ===== APP LOGIC ===== -->
   <script type="module">
     import { score } from './microlife.js';
-    import { analyzeFood } from './api.js';
+    import { analyzeFood, getCoaching } from './api.js';
     import { lookupBarcode } from './barcode.js';
 
     // --- Device ID ---
@@ -739,6 +814,7 @@
           minutes: result.minutes,
           factors: result.factors,
           calories: nutrition.calories,
+          nutrition,
           consumed: false,
           timestamp: Date.now()
         };
@@ -775,6 +851,7 @@
           minutes: result.minutes,
           factors: result.factors,
           calories: nutrition.calories,
+          nutrition,
           consumed: false,
           timestamp: Date.now()
         };
@@ -819,6 +896,9 @@
       // Update "I ate this" button state
       updateAteButton(entry);
 
+      // Reset coaching state
+      resetCoaching(entry);
+
       $('result-overlay').classList.remove('hidden');
     }
 
@@ -849,6 +929,124 @@
 
     $('result-done').addEventListener('click', () => {
       $('result-overlay').classList.add('hidden');
+    });
+
+    // --- Coaching ---
+    const coachCache = {};
+    let coachInflight = null;
+    let coachActiveMode = null;
+
+    function resetCoaching(entry) {
+      coachActiveMode = null;
+      coachInflight = null;
+      $('coach-container').classList.add('hidden');
+      $('coach-loading').classList.add('hidden');
+      $('coach-content').classList.add('hidden');
+      $('coach-error').classList.add('hidden');
+      $('coach-content').innerHTML = '';
+
+      const hasNutrition = entry && entry.nutrition;
+      $('coach-improve').disabled = !hasNutrition;
+      $('coach-improve').classList.toggle('opacity-40', !hasNutrition);
+    }
+
+    async function loadCoaching(mode) {
+      if (!currentEntry || !currentEntry.nutrition) return;
+      if (coachInflight) return;
+
+      // Toggle off if same mode tapped again
+      if (coachActiveMode === mode) {
+        coachActiveMode = null;
+        $('coach-container').classList.add('hidden');
+        return;
+      }
+
+      coachActiveMode = mode;
+      const cacheKey = `${currentEntry.timestamp}-${mode}`;
+
+      // Show cached result
+      if (coachCache[cacheKey]) {
+        renderCoachResult(mode, coachCache[cacheKey]);
+        return;
+      }
+
+      // Show loading
+      $('coach-container').classList.remove('hidden');
+      $('coach-loading').classList.remove('hidden');
+      $('coach-content').classList.add('hidden');
+      $('coach-error').classList.add('hidden');
+      $('coach-loading-text').textContent = mode === 'improve' ? 'Finding ways to improve...' : 'Finding better meals...';
+
+      coachInflight = mode;
+      try {
+        const data = await getCoaching(currentEntry, mode);
+        coachCache[cacheKey] = data;
+        if (coachActiveMode === mode) {
+          renderCoachResult(mode, data);
+        }
+      } catch (err) {
+        if (coachActiveMode === mode) {
+          $('coach-loading').classList.add('hidden');
+          $('coach-error').classList.remove('hidden');
+        }
+      } finally {
+        coachInflight = null;
+      }
+    }
+
+    function renderCoachResult(mode, data) {
+      $('coach-loading').classList.add('hidden');
+      $('coach-error').classList.add('hidden');
+      $('coach-container').classList.remove('hidden');
+      $('coach-content').classList.remove('hidden');
+
+      if (mode === 'improve') {
+        renderImprove(data);
+      } else {
+        renderIdeas(data);
+      }
+    }
+
+    function renderImprove(data) {
+      const tips = data.tips || [];
+      $('coach-content').innerHTML = tips.map(t => `
+        <div class="bg-white/5 rounded-xl p-4">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex-1">
+              <div class="text-white text-sm font-semibold mb-1">${esc(t.swap)}</div>
+              <div class="text-white/40 text-xs">${esc(t.why)}</div>
+            </div>
+            <span class="text-gain text-xs font-bold whitespace-nowrap bg-gain/10 rounded-lg px-2 py-1">${esc(t.impact)}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderIdeas(data) {
+      const meals = data.meals || [];
+      $('coach-content').innerHTML = meals.map(m => `
+        <div class="bg-white/5 rounded-xl p-4">
+          <div class="flex items-start justify-between gap-3 mb-2">
+            <div class="text-white text-sm font-semibold">${esc(m.name)}</div>
+            <span class="text-gain text-xs font-bold whitespace-nowrap bg-gain/10 rounded-lg px-2 py-1">${esc(m.estimated_minutes)}</span>
+          </div>
+          <div class="text-white/40 text-xs mb-2">${esc(m.description)}</div>
+          <div class="flex flex-wrap gap-1.5">
+            ${(m.key_benefits || []).map(b => `<span class="text-gain/70 text-[10px] bg-gain/5 rounded-full px-2 py-0.5">${esc(b)}</span>`).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function esc(s) {
+      const d = document.createElement('div');
+      d.textContent = s || '';
+      return d.innerHTML;
+    }
+
+    $('coach-improve').addEventListener('click', () => loadCoaching('improve'));
+    $('coach-retry').addEventListener('click', () => {
+      if (coachActiveMode) loadCoaching(coachActiveMode);
     });
 
     // --- Life Bar ---
@@ -1015,6 +1213,94 @@
     });
 
     $('shared-dismiss').addEventListener('click', dismissShared);
+
+    // --- Tab Switching ---
+    function switchTab(tab) {
+      const isScan = tab === 'scan';
+      $('scan-tab').classList.toggle('hidden', !isScan);
+      $('ideas-tab').classList.toggle('hidden', isScan);
+      $('nav-scan').className = `flex-1 flex flex-col items-center gap-1 py-3 ${isScan ? 'text-gain' : 'text-white/40'}`;
+      $('nav-ideas').className = `flex-1 flex flex-col items-center gap-1 py-3 ${isScan ? 'text-white/40' : 'text-gain'}`;
+    }
+    window.switchTab = switchTab;
+
+    // --- Meal Ideas Tab ---
+    let mealIdeas = JSON.parse(localStorage.getItem('lifespan_meal_ideas') || '[]');
+    let ideasInflight = false;
+
+    function renderMealIdeas() {
+      const hasIdeas = mealIdeas.length > 0;
+      $('ideas-empty').classList.toggle('hidden', hasIdeas);
+      $('ideas-actions').classList.toggle('hidden', !hasIdeas);
+
+      if (!hasIdeas) {
+        $('ideas-list').innerHTML = '';
+        return;
+      }
+
+      $('ideas-list').innerHTML = mealIdeas.map(m => {
+        const result = m.nutrition ? score(m.nutrition) : null;
+        const mins = result ? result.minutes : null;
+        const minLabel = mins !== null ? `${mins >= 0 ? '+' : ''}${mins} min` : (m.estimated_minutes || '?');
+        const isGain = mins === null || mins >= 0;
+        const badgeColor = isGain ? '#22c55e' : '#ef4444';
+        return `
+        <div class="bg-white/5 rounded-xl p-4">
+          <div class="flex items-start justify-between gap-3 mb-2">
+            <div class="text-white text-sm font-semibold">${esc(m.name)}</div>
+            <span class="text-xs font-bold whitespace-nowrap rounded-lg px-2 py-1" style="color:${badgeColor};background:${badgeColor}1a">${esc(minLabel)}</span>
+          </div>
+          <div class="text-white/40 text-xs mb-2">${esc(m.description)}</div>
+          <div class="flex flex-wrap gap-1.5">
+            ${(m.key_benefits || []).map(b => `<span class="text-gain/70 text-[10px] bg-gain/5 rounded-full px-2 py-0.5">${esc(b)}</span>`).join('')}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    async function generateMealIdeas() {
+      if (ideasInflight) return;
+      ideasInflight = true;
+
+      $('ideas-error').classList.add('hidden');
+      $('ideas-loading').classList.remove('hidden');
+
+      try {
+        const response = await fetch('/api/coach', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: 'ideas' })
+        });
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.error || `API error: ${response.status}`);
+        }
+        const data = await response.json();
+        const newMeals = data.meals || [];
+        mealIdeas = [...mealIdeas, ...newMeals];
+        localStorage.setItem('lifespan_meal_ideas', JSON.stringify(mealIdeas));
+        renderMealIdeas();
+      } catch (err) {
+        $('ideas-error').classList.remove('hidden');
+      } finally {
+        $('ideas-loading').classList.add('hidden');
+        ideasInflight = false;
+      }
+    }
+
+    function clearMealIdeas() {
+      mealIdeas = [];
+      localStorage.removeItem('lifespan_meal_ideas');
+      renderMealIdeas();
+    }
+
+    $('ideas-generate').addEventListener('click', generateMealIdeas);
+    $('ideas-more').addEventListener('click', generateMealIdeas);
+    $('ideas-clear').addEventListener('click', clearMealIdeas);
+    $('ideas-retry').addEventListener('click', generateMealIdeas);
+
+    // Render persisted ideas on load
+    renderMealIdeas();
 
     // --- Boot ---
     init();

@@ -38,7 +38,8 @@ Both flows produce the same nutrition JSON shape for `score()`.
 
 | Factor | Minutes |
 |---|---|
-| Fruit/veg serving | +30 |
+| Per fruit/veg serving (80g+) | +30 |
+| Oily fish (omega-3) | +15 |
 | Processed meat serving | -30 |
 | Red meat serving (non-processed) | -15 |
 | Per 5g saturated fat (above 2g) | -9 |

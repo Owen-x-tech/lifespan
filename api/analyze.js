@@ -11,7 +11,8 @@ const SYSTEM_PROMPT = `You analyze food photos and estimate nutritional content.
   "fibre_g": number,
   "is_processed_meat": boolean,
   "is_red_meat": boolean,
-  "is_fruit_or_veg": boolean,
+  "fruit_veg_servings": "number - count of full fruit/vegetable servings (1 serving = ~80g/3oz). Only count meaningful portions, not garnishes or trace ingredients. A side of asparagus = 1, a large salad with multiple veggies = 2-3, a few berries on top of oatmeal = 0.",
+  "is_oily_fish": "boolean - true for salmon, mackerel, sardines, herring, trout, anchovies",
   "is_whole_food": boolean
 }
 

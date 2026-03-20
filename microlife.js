@@ -5,10 +5,18 @@ export function score(nutrition) {
   let minutes = 0;
   const factors = [];
 
-  // Fruit/veg serving: +30 min
-  if (nutrition.is_fruit_or_veg) {
-    minutes += 30;
-    factors.push("Fruit/veg serving: +30 min");
+  // Fruit/veg servings: +30 min each
+  const fvServings = nutrition.fruit_veg_servings || (nutrition.is_fruit_or_veg ? 1 : 0);
+  if (fvServings > 0) {
+    const bonus = fvServings * 30;
+    minutes += bonus;
+    factors.push(`Fruit/veg (${fvServings} serving${fvServings > 1 ? 's' : ''}): +${bonus} min`);
+  }
+
+  // Oily fish serving: +15 min
+  if (nutrition.is_oily_fish) {
+    minutes += 15;
+    factors.push("Oily fish (omega-3): +15 min");
   }
 
   // Processed meat serving: -30 min
