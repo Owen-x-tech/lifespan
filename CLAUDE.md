@@ -40,7 +40,7 @@ Based on Spiegelhalter (2012) microlives and Stylianou et al. (2021) HENI framew
 
 | Factor | Minutes | Source |
 |---|---|---|
-| Per fruit/veg serving (cap 5/scan) | +15 | HENI midpoint for fruits |
+| Per fruit/veg serving (cap 5/scan) | +7 | Fadnes 2022, Wang 2021, Spiegelhalter 2012 |
 | Oily fish (omega-3) | +15 | HENI salmon |
 | Processed meat serving | -30 | HENI hot dog |
 | Red meat serving (non-processed) | -15 | GBD data |

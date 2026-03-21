@@ -35,12 +35,13 @@ export function score(nutrition, profile = {}) {
 
   // --- Factor scoring ---
 
-  // Fruit/veg servings: +15 min each, capped at 5 servings per scan
+  // Fruit/veg servings: +7 min each, capped at 5 servings per scan
+  // Fadnes 2022, Wang 2021, Spiegelhalter 2012 consensus: ~6-7.5 min/serving
   const fvServings = Math.min(nutrition.fruit_veg_servings ?? 0, 5);
   const isMeat = nutrition.is_processed_meat || nutrition.is_red_meat;
 
   if (fvServings > 0) {
-    const bonus = fvServings * 15;
+    const bonus = fvServings * 7;
     minutes += bonus;
     factors.push(`Fruit/veg (${fvServings} serving${fvServings > 1 ? 's' : ''}): +${bonus} min`);
   }
